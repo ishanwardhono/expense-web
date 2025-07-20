@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Expense Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="dateRange">14 - 17 Jul 2025</h1>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Mingguan</div>
+                    <div class="info-value" id="weekInfo">29, 2025</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Sisa Weekday</div>
+                    <div class="info-value" id="weekdayRemaining">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Sisa Weekend</div>
+                    <div class="info-value" id="weekendRemaining">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <table class="expense-table">
+            <thead>
+                <tr>
+                    <th>Hari</th>
+                    <th>Sisa Uang</th>
+                </tr>
+            </thead>
+            <tbody id="expenseTableBody">
+                <!-- Table rows will be populated by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

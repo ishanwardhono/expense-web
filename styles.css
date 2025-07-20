@@ -1,0 +1,178 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 8px;
+}
+
+.header h1 {
+    margin: 0 0 15px 0;
+    font-size: 2em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.info-item {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.info-label {
+    font-size: 0.9em;
+    opacity: 0.8;
+    margin-bottom: 5px;
+}
+
+.info-value {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.expense-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.expense-table th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
+.expense-table td {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.3s ease;
+    text-align: center;
+}
+
+.expense-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+.expense-table tr:last-child td {
+    border-bottom: none;
+}
+
+.day-name {
+    font-weight: 600;
+    font-size: 1em;
+}
+
+.amount {
+    font-weight: 500;
+    font-size: 1em;
+}
+
+/* Styling for passed days (empty string) */
+.passed-day {
+    background-color: #f8f9fa !important;
+    color: #6c757d;
+    opacity: 0.6;
+}
+
+.passed-day:hover {
+    background-color: #f8f9fa !important;
+}
+
+.passed-day .day-name,
+.passed-day .amount {
+    color: #6c757d;
+}
+
+/* Styling for "Ga ada jajan" */
+.no-snack {
+    background-color: #ffebee !important;
+    color: #c62828;
+}
+
+.no-snack:hover {
+    background-color: #ffcdd2 !important;
+}
+
+.no-snack .amount {
+    color: #c62828;
+    font-weight: bold;
+}
+
+.current-day {
+    background-color: #e3f2fd !important;
+    border-left: 4px solid #2196f3;
+}
+
+.current-day .day-name {
+    color: #1976d2;
+    font-weight: bold;
+}
+
+/* Styling for negative remaining amounts */
+.negative {
+    color: #e9e609 !important;
+}
+
+/* Styling for positive remaining amounts */
+.positive {
+    color: #58e15f !important;
+}
+
+/* Styling for neutral remaining amounts (default/white) */
+.neutral {
+    color: white !important;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 15px;
+        margin: 10px;
+    }
+    
+    .header h1 {
+        font-size: 1.2em;
+    }
+    
+    .expense-table th,
+    .expense-table td {
+        padding: 10px;
+    }
+}
+
+@media (max-width: 400px) {
+    .header h1 {
+        font-size: 1em;
+    }
+}
