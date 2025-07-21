@@ -176,3 +176,75 @@ body {
         font-size: 1em;
     }
 }
+
+/* Loading and Error Message Styles */
+.loading-message, .error-message {
+    padding: 25px;
+    margin: 20px auto;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 500;
+    max-width: 600px;
+    border: none;
+    color: white;
+}
+
+.loading-message {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.error-message {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    box-shadow: 0 4px 15px rgba(238, 90, 82, 0.3);
+}
+
+.loading-message h3, .error-message h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.3em;
+    font-weight: 600;
+}
+
+.loading-message p, .error-message p {
+    margin: 0 0 20px 0;
+    opacity: 0.95;
+    line-height: 1.4;
+}
+
+.retry-button {
+    margin-top: 5px;
+    padding: 12px 24px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 0.95em;
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
+}
+
+.retry-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.5);
+}
+
+.loading-spinner {
+    margin-top: 15px;
+}
+
+.spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
