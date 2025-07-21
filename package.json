@@ -1,0 +1,16 @@
+{
+  "name": "weekly-expense-tracker",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Weekly expense tracking application",
+  "main": "src/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

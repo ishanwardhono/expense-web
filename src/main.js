@@ -282,15 +282,25 @@ async function refreshData() {
     }
 }
 
-// Initialize the app when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
-});
-
 // Make functions globally available for external use
 window.updateData = updateData;
 window.refreshData = refreshData;
 window.config = config; // Allow external configuration changes
+window.retryWithFeedback = retryWithFeedback; // Make retry function global
+
+// Export functions for module use
+export { 
+    initializeApp,
+    updateData, 
+    refreshData, 
+    config,
+    retryWithFeedback 
+};
+
+// Initialize the app when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+});
 
 // Example of how to update with new data:
 // You can now use refreshData() to fetch new data from the API
