@@ -1,13 +1,12 @@
-// Configuration for API endpoint
 const config = {
-    apiUrl: 'http://localhost:8199', // Configurable API endpoint
-    timeout: 10000 // Request timeout in milliseconds
+    getWeeklyExpenseUrl: import.meta.env.VITE_GET_WEEKLY_EXPENSE_URL, 
+    timeout: parseInt(import.meta.env.VITE_API_TIMEOUT)
 };
 
 // Function to fetch data from API
 async function fetchExpenseData() {
     try {
-        const response = await fetch(config.apiUrl, {
+        const response = await fetch(config.getWeeklyExpenseUrl, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -33,7 +32,7 @@ async function fetchExpenseData() {
         if (error.name === 'AbortError') {
             throw new Error('Request timeout - please check if the server is running');
         } else if (error.message.includes('Failed to fetch')) {
-            throw new Error('Cannot connect to server - please check if the server is running on ' + config.apiUrl);
+            throw new Error('Cannot connect to server - please check if the server is running on ' + config.getWeeklyExpenseUrl);
         } else if (error.name === 'TypeError' && error.message.includes('NetworkError')) {
             throw new Error('Network error - this might be a CORS issue. Check if the server allows requests from this domain.');
         } else {
@@ -301,35 +300,3 @@ export {
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
-
-// Example of how to update with new data:
-// You can now use refreshData() to fetch new data from the API
-// Or use updateData() to manually update with specific data:
-// updateData({
-//     "year": 2025,
-//     "week": 30,
-//     "day_label": "Senin",
-//     "date_range": "21 - 27 Jul 2025",
-//     "remaining": {
-//         "weekday": {
-//             "label": "Rp -50.000",
-//             "label_color": "red"
-//         },
-//         "weekend": {
-//             "label": "Rp 200.000",
-//             "label_color": "green"
-//         },
-//         "days": {
-//             "Senin": "Rp 100.000",
-//             "Selasa": "Rp 100.000",
-//             "Rabu": "Rp 100.000",
-//             "Kamis": "Rp 100.000",
-//             "Jumat": "Rp 100.000",
-//             "Sabtu": "Ga ada jajan",
-//             "Minggu": "Rp 200.000"
-//         }
-//     }
-// });
-
-// To change the API endpoint:
-// window.config.apiUrl = 'http://your-server:port/api/endpoint';
