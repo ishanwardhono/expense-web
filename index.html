@@ -70,7 +70,7 @@
                             <div class="input-toggle">
                                 <span class="toggle-label">Normal</span>
                                 <label class="toggle-switch">
-                                    <input type="checkbox" id="inputToggle" checked>
+                                    <input type="checkbox" id="inputToggle">
                                     <span class="toggle-slider"></span>
                                 </label>
                                 <span class="toggle-label">Roll</span>
@@ -78,7 +78,7 @@
                         </div>
                         
                         <!-- Roll Number Picker -->
-                        <div class="roll-picker-container" id="rollPickerContainer">
+                        <div class="roll-picker-container" id="rollPickerContainer" style="display: none;">
                             <div class="roll-number-picker" id="rollNumberPicker">
                                 <div class="roll-digit" data-position="5">
                                     <button type="button" class="roll-btn roll-btn-up">+</button>
@@ -95,6 +95,7 @@
                                     <div class="roll-display">0</div>
                                     <button type="button" class="roll-btn roll-btn-down">-</button>
                                 </div>
+                                <div class="roll-dot">.</div>
                                 <div class="roll-digit" data-position="2">
                                     <button type="button" class="roll-btn roll-btn-up">+</button>
                                     <div class="roll-display">0</div>
@@ -122,7 +123,7 @@
                         </div>
                         
                         <!-- Normal Number Input -->
-                        <div class="normal-input-container" id="normalInputContainer" style="display: none;">
+                        <div class="normal-input-container" id="normalInputContainer">
                             <input type="number" id="normalAmountInput" step="1" placeholder="Masukkan jumlah pengeluaran">
                         </div>
                         

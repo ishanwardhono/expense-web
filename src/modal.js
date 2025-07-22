@@ -422,9 +422,9 @@ function initializeInputToggle() {
     const normalContainer = document.getElementById('normalInputContainer');
     const normalInput = document.getElementById('normalAmountInput');
     
-    // Set initial state (Roll mode by default)
-    toggle.checked = true;
-    isRollMode = true;
+    // Set initial state (Normal mode by default)
+    toggle.checked = false;
+    isRollMode = false;
     
     // Toggle event
     toggle.addEventListener('change', () => {
@@ -459,6 +459,10 @@ function initializeInputToggle() {
             updateHiddenInputFromNormal();
         }
     });
+    
+    // Set initial display state (Normal mode by default)
+    rollContainer.style.display = 'none';
+    normalContainer.style.display = 'block';
 }
 
 function setRollPickerValue(value) {
