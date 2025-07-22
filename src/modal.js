@@ -87,11 +87,11 @@ function resetForm() {
     dateInput.disabled = true;
     dateInput.value = '';
     
-    // Reset input toggle to Roll mode (default state)
-    inputToggle.checked = true;
-    isRollMode = true;
-    rollContainer.style.display = 'block';
-    normalContainer.style.display = 'none';
+    // Reset input toggle to Normal mode (default state)
+    inputToggle.checked = false;
+    isRollMode = false;
+    rollContainer.style.display = 'none';
+    normalContainer.style.display = 'block';
     
     // Remove any error states
     const inputs = form.querySelectorAll('input');
