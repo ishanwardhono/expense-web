@@ -444,9 +444,40 @@ body {
 
 .date-input-wrapper input[type="date"]:disabled {
     background-color: #f8f9fa;
-    color: #6c757d;
+    color: transparent;
     cursor: not-allowed;
     opacity: 0.6;
+}
+
+/* Hide browser's default date placeholder when disabled */
+.date-input-wrapper input[type="date"]:disabled::-webkit-datetime-edit {
+    color: transparent;
+}
+
+.date-input-wrapper input[type="date"]:disabled::-webkit-datetime-edit-fields-wrapper {
+    color: transparent;
+}
+
+.date-input-wrapper input[type="date"]:disabled::-webkit-datetime-edit-text {
+    color: transparent;
+}
+
+.date-input-wrapper input[type="date"]:disabled::-webkit-datetime-edit-day-field {
+    color: transparent;
+}
+
+.date-input-wrapper input[type="date"]:disabled::-webkit-datetime-edit-month-field {
+    color: transparent;
+}
+
+.date-input-wrapper input[type="date"]:disabled::-webkit-datetime-edit-year-field {
+    color: transparent;
+}
+
+.date-input-wrapper input[type="date"]:disabled::-webkit-inner-spin-button,
+.date-input-wrapper input[type="date"]:disabled::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
 }
 
 .date-label {
