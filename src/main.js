@@ -1,5 +1,8 @@
+import { initializeModal, showModal, hideModal, addExpense } from './modal.js';
+
 const config = {
     getWeeklyExpenseUrl: import.meta.env.VITE_GET_WEEKLY_EXPENSE_URL, 
+    addWeeklyExpenseUrl: import.meta.env.VITE_ADD_WEEKLY_EXPENSE_URL,
     timeout: parseInt(import.meta.env.VITE_API_TIMEOUT)
 };
 
@@ -293,10 +296,14 @@ export {
     updateData, 
     refreshData, 
     config,
-    retryWithFeedback 
+    retryWithFeedback,
+    addExpense,
+    showModal,
+    hideModal
 };
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
+    initializeModal(config, refreshData);
 });

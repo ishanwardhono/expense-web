@@ -38,6 +38,119 @@
                 <!-- Table rows will be populated by JavaScript -->
             </tbody>
         </table>
+        
+        <div class="table-actions">
+            <button id="addExpenseBtn" class="primary-button">
+                <span class="button-icon">+</span>
+                Tambah Pengeluaran
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal for adding expense -->
+    <div id="addExpenseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Tambah Pengeluaran</h3>
+                <button class="close-button" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Error section -->
+                <div id="modalErrorSection" class="modal-error-section" style="display: none;">
+                    <div class="error-content">
+                        <span class="error-icon">⚠️</span>
+                        <span id="modalErrorMessage" class="error-text"></span>
+                    </div>
+                </div>
+                
+                <form id="addExpenseForm">
+                    <div class="form-group">
+                        <div class="input-type-header">
+                            <label for="expenseAmount">Jumlah</label>
+                            <div class="input-toggle">
+                                <span class="toggle-label">Normal</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="inputToggle" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label">Roll</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Roll Number Picker -->
+                        <div class="roll-picker-container" id="rollPickerContainer">
+                            <div class="roll-number-picker" id="rollNumberPicker">
+                                <div class="roll-digit" data-position="5">
+                                    <button type="button" class="roll-btn roll-btn-up">+</button>
+                                    <div class="roll-display">0</div>
+                                    <button type="button" class="roll-btn roll-btn-down">-</button>
+                                </div>
+                                <div class="roll-digit" data-position="4">
+                                    <button type="button" class="roll-btn roll-btn-up">+</button>
+                                    <div class="roll-display">0</div>
+                                    <button type="button" class="roll-btn roll-btn-down">-</button>
+                                </div>
+                                <div class="roll-digit" data-position="3">
+                                    <button type="button" class="roll-btn roll-btn-up">+</button>
+                                    <div class="roll-display">0</div>
+                                    <button type="button" class="roll-btn roll-btn-down">-</button>
+                                </div>
+                                <div class="roll-digit" data-position="2">
+                                    <button type="button" class="roll-btn roll-btn-up">+</button>
+                                    <div class="roll-display">0</div>
+                                    <button type="button" class="roll-btn roll-btn-down">-</button>
+                                </div>
+                                <div class="roll-digit" data-position="1">
+                                    <button type="button" class="roll-btn roll-btn-up">+</button>
+                                    <div class="roll-display">0</div>
+                                    <button type="button" class="roll-btn roll-btn-down">-</button>
+                                </div>
+                                <div class="roll-digit" data-position="0">
+                                    <button type="button" class="roll-btn roll-btn-up">+</button>
+                                    <div class="roll-display">0</div>
+                                    <button type="button" class="roll-btn roll-btn-down">-</button>
+                                </div>
+                            </div>
+                            <div class="roll-controls">
+                                <button type="button" id="rollClearBtn" class="roll-control-btn clear-btn">
+                                    Clear
+                                </button>
+                                <button type="button" id="rollNegateBtn" class="roll-control-btn negate-btn">
+                                    +/-
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Normal Number Input -->
+                        <div class="normal-input-container" id="normalInputContainer" style="display: none;">
+                            <input type="number" id="normalAmountInput" step="1" placeholder="Masukkan jumlah pengeluaran">
+                        </div>
+                        
+                        <input type="hidden" id="expenseAmount" name="amount" value="0">
+                    </div>
+                    <div class="form-group">
+                        <div class="input-type-header">
+                            <div class="date-input-wrapper">
+                                <input type="date" id="expenseDate" name="date" disabled>
+                                <label for="expenseDate" class="date-label">Tanggal</label>
+                            </div>
+                            <div class="input-toggle">
+                                <span class="toggle-label">Off</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="dateToggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label">On</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="cancelBtn" class="secondary-button">Batal</button>
+                        <button type="submit" id="submitBtn" class="primary-button">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="/src/main.js"></script>
