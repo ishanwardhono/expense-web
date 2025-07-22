@@ -76,6 +76,9 @@ function resetForm() {
     const form = document.getElementById('addExpenseForm');
     const dateInput = document.getElementById('expenseDate');
     const dateToggle = document.getElementById('dateToggle');
+    const inputToggle = document.getElementById('inputToggle');
+    const rollContainer = document.getElementById('rollPickerContainer');
+    const normalContainer = document.getElementById('normalInputContainer');
     
     form.reset();
     
@@ -83,6 +86,12 @@ function resetForm() {
     dateToggle.checked = false;
     dateInput.disabled = true;
     dateInput.value = '';
+    
+    // Reset input toggle to Roll mode (default state)
+    inputToggle.checked = true;
+    isRollMode = true;
+    rollContainer.style.display = 'block';
+    normalContainer.style.display = 'none';
     
     // Remove any error states
     const inputs = form.querySelectorAll('input');
@@ -530,6 +539,4 @@ function setWeekDateRange() {
         // If somehow today is not in the current week range, set to Monday
         dateInput.value = mondayStr;
     }
-    
-    console.log(`Date picker limited to current week: ${mondayStr} to ${sundayStr}`);
 }
