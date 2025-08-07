@@ -419,6 +419,77 @@ body {
     opacity: 0.6;
 }
 
+/* Date Toggle Section */
+.date-toggle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.date-toggle-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toggle-label {
+    font-size: 0.8em;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    border-radius: 24px;
+    transition: all 0.3s ease;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+}
+
+.toggle-switch:hover .toggle-slider {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
 /* Date Input Wrapper */
 .date-input-wrapper {
     position: relative;
@@ -546,8 +617,19 @@ body {
         flex: none;
     }
     
-    /* Mobile roll picker adjustments */
-    .input-type-header {
+    /* Mobile amount input adjustments */
+    .amount-input-container {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .negate-btn {
+        align-self: stretch;
+        justify-content: center;
+    }
+    
+    /* Mobile date toggle adjustments */
+    .date-toggle-header {
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
@@ -555,7 +637,7 @@ body {
         flex-wrap: wrap;
     }
     
-    .input-toggle {
+    .date-toggle-switch {
         flex-shrink: 0;
     }
     
@@ -582,44 +664,6 @@ body {
     
     .toggle-switch input:checked + .toggle-slider:before {
         transform: translateX(18px);
-    }
-    
-    .roll-picker-container {
-        padding: 12px;
-    }
-    
-    .roll-number-picker {
-        gap: 2px;
-        margin-bottom: 12px;
-    }
-    
-    .roll-btn {
-        width: 28px;
-        height: 20px;
-        font-size: 12px;
-    }
-    
-    .roll-display {
-        width: 28px;
-        height: 40px;
-        font-size: 18px;
-    }
-    
-    .roll-dot {
-        font-size: 18px;
-        height: 40px;
-        margin: 0 1px;
-    }
-    
-    .roll-controls {
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-    
-    .roll-control-btn {
-        padding: 8px 16px;
-        font-size: 0.8em;
-        min-width: 70px;
     }
 }
 
@@ -675,268 +719,55 @@ body {
     }
 }
 
-/* Roll Number Picker */
-.input-type-header {
+/* Amount Input Container */
+.amount-input-container {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
     gap: 12px;
-    margin-bottom: 12px;
-}
-
-.input-toggle {
-    display: flex;
     align-items: center;
-    gap: 8px;
 }
 
-.toggle-label {
-    font-size: 0.8em;
-    color: #6c757d;
-    font-weight: 500;
-}
-
-.toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 44px;
-    height: 24px;
-    cursor: pointer;
-}
-
-.toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.toggle-slider {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
-    border-radius: 24px;
-    transition: all 0.3s ease;
-}
-
-.toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    border-radius: 50%;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.toggle-switch input:checked + .toggle-slider {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.toggle-switch input:checked + .toggle-slider:before {
-    transform: translateX(20px);
-}
-
-.toggle-switch:hover .toggle-slider {
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.normal-input-container {
-    margin-bottom: 16px;
-}
-
-.normal-input-container input {
-    width: 100%;
-    padding: 16px;
+.amount-input-container input {
+    flex: 1;
+    padding: 12px;
     border: 2px solid #e9ecef;
-    border-radius: 12px;
-    font-size: 1.1em;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
     box-sizing: border-box;
     font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
 }
 
-.normal-input-container input:focus {
+.amount-input-container input:focus {
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.roll-picker-container {
-    background: #f8f9fa;
-    border-radius: 16px;
-    border: 2px solid #e9ecef;
-    padding: 16px;
-    transition: all 0.3s ease;
-}
-
-.roll-picker-container:focus-within {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    background: #ffffff;
-}
-
-.roll-number-picker {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 4px;
-    margin-bottom: 16px;
-}
-
-.roll-number-picker.negative::before {
-    content: '-';
-    font-size: 24px;
-    font-weight: bold;
-    color: #ff6b6b;
-    margin-right: 8px;
-}
-
-.roll-digit {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-}
-
-.roll-dot {
+.negate-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
-    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-    height: 48px;
-    margin: 0 2px;
-    user-select: none;
-}
-
-.roll-btn {
-    width: 32px;
-    height: 24px;
-    border: 1px solid #dee2e6;
+    padding: 12px 16px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-}
-
-.roll-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
-}
-
-.roll-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(102, 126, 234, 0.3);
-}
-
-.roll-btn-down {
-    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
-}
-
-.roll-btn-down:hover {
-    box-shadow: 0 2px 4px rgba(108, 117, 125, 0.3);
-}
-
-.roll-display {
-    width: 32px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: white;
-    border: 2px solid #dee2e6;
+    border: none;
     border-radius: 8px;
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
-    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-    transition: all 0.3s ease;
-}
-
-.roll-display.changed {
-    background: #e3f2fd;
-    border-color: #2196f3;
-    color: #1976d2;
-    transform: scale(1.05);
-}
-
-.roll-controls {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-}
-
-.roll-control-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 20px;
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 1px solid rgba(222, 226, 230, 0.6);
-    border-radius: 12px;
     font-size: 0.9em;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    color: #495057;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    min-width: 80px;
-}
-
-.roll-control-btn:hover {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-color: rgba(173, 181, 189, 0.8);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.roll-control-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.clear-btn {
-    border-color: rgba(255, 107, 107, 0.4);
-    color: #ff6b6b;
-}
-
-.clear-btn:hover {
-    background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
-    border-color: rgba(255, 82, 82, 0.6);
-    color: #ff5252;
-}
-
-.negate-btn {
-    border-color: rgba(102, 126, 234, 0.4);
-    color: #667eea;
+    min-width: 50px;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
 }
 
 .negate-btn:hover {
-    background: linear-gradient(135deg, #f5f7ff 0%, #e8ecff 100%);
-    border-color: rgba(90, 103, 216, 0.6);
-    color: #5a67d8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
 }
 
-/* Negative number styling */
-.roll-picker-container.negative {
-    border-color: #ff6b6b;
-    background: linear-gradient(135deg, #fff8f8 0%, #fff0f0 100%);
+.negate-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
 }
 
 /* Success Message Styles */

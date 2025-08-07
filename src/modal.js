@@ -10,11 +10,8 @@ export function initializeModal(config, refreshData) {
     // Set date input as disabled by default
     dateInput.disabled = true;
     
-    // Initialize roll number picker
-    initializeRollPicker();
-    
-    // Initialize input toggle
-    initializeInputToggle();
+    // Initialize amount input with negative toggle
+    initializeAmountInput();
     
     // Initialize date picker toggle
     initializeDateToggle();
@@ -55,14 +52,9 @@ export function showModal() {
     const modal = document.getElementById('addExpenseModal');
     modal.classList.add('show');
     
-    // Focus on appropriate input based on mode
+    // Focus on amount input
     setTimeout(() => {
-        if (isRollMode) {
-            // For roll mode, we don't need to focus on anything specific
-            // The roll picker is always ready for interaction
-        } else {
-            document.getElementById('normalAmountInput').focus();
-        }
+        document.getElementById('expenseAmount').focus();
     }, 100);
 }
 
@@ -76,9 +68,7 @@ function resetForm() {
     const form = document.getElementById('addExpenseForm');
     const dateInput = document.getElementById('expenseDate');
     const dateToggle = document.getElementById('dateToggle');
-    const inputToggle = document.getElementById('inputToggle');
-    const rollContainer = document.getElementById('rollPickerContainer');
-    const normalContainer = document.getElementById('normalInputContainer');
+    const amountInput = document.getElementById('expenseAmount');
     
     form.reset();
     
@@ -87,21 +77,14 @@ function resetForm() {
     dateInput.disabled = true;
     dateInput.value = '';
     
-    // Reset input toggle to Normal mode (default state)
-    inputToggle.checked = false;
-    isRollMode = false;
-    rollContainer.style.display = 'none';
-    normalContainer.style.display = 'block';
+    // Clear amount input
+    amountInput.value = '';
     
     // Remove any error states
     const inputs = form.querySelectorAll('input');
     inputs.forEach(input => {
         input.classList.remove('error');
     });
-    
-    // Reset both input types
-    resetRollPicker();
-    resetNormalInput();
     
     // Hide error section
     hideModalError();
@@ -276,215 +259,24 @@ function showSuccessMessage(message) {
     }, 3000);
 }
 
-// Roll Number Picker Functions
-let currentValue = 0;
-let isNegative = false;
-
-function initializeRollPicker() {
-    const picker = document.getElementById('rollNumberPicker');
-    const clearBtn = document.getElementById('rollClearBtn');
-    const negateBtn = document.getElementById('rollNegateBtn');
+// Amount Input Functions
+function initializeAmountInput() {
+    const amountInput = document.getElementById('expenseAmount');
+    const negateBtn = document.getElementById('negateBtn');
     
-    // Initialize digit buttons
-    const digits = picker.querySelectorAll('.roll-digit');
-    digits.forEach(digit => {
-        const position = parseInt(digit.dataset.position);
-        const upBtn = digit.querySelector('.roll-btn-up');
-        const downBtn = digit.querySelector('.roll-btn-down');
-        const display = digit.querySelector('.roll-display');
-        
-        // Up button functionality
-        upBtn.addEventListener('click', () => {
-            incrementDigit(position);
-            animateDigitChange(display);
-        });
-        
-        // Down button functionality  
-        downBtn.addEventListener('click', () => {
-            decrementDigit(position);
-            animateDigitChange(display);
-        });
-    });
-    
-    // Clear button
-    clearBtn.addEventListener('click', () => {
-        clearRollPicker();
-    });
-    
-    // Negate button (+/-)
+    // Handle negate button click
     negateBtn.addEventListener('click', () => {
-        toggleNegative();
+        const currentValue = parseInt(amountInput.value) || 0;
+        amountInput.value = (-currentValue).toString();
     });
     
-    // Initialize display
-    updateRollDisplay();
-}
-
-function incrementDigit(position) {
-    const digitValue = Math.floor(Math.abs(currentValue) / Math.pow(10, position)) % 10;
-    const increment = Math.pow(10, position);
-    
-    if (digitValue === 9) {
-        // If digit is 9, set it to 0 and carry over
-        currentValue = currentValue - (9 * increment);
-    } else {
-        // Normal increment
-        currentValue = isNegative ? currentValue - increment : currentValue + increment;
-    }
-    
-    updateRollDisplay();
-    updateHiddenInput();
-}
-
-function decrementDigit(position) {
-    const digitValue = Math.floor(Math.abs(currentValue) / Math.pow(10, position)) % 10;
-    const decrement = Math.pow(10, position);
-    
-    if (digitValue === 0) {
-        // If digit is 0, set it to 9 and borrow
-        currentValue = currentValue + (9 * decrement);
-    } else {
-        // Normal decrement
-        currentValue = isNegative ? currentValue + decrement : currentValue - decrement;
-    }
-    
-    updateRollDisplay();
-    updateHiddenInput();
-}
-
-function updateRollDisplay() {
-    const absValue = Math.abs(currentValue);
-    const picker = document.getElementById('rollNumberPicker');
-    const container = document.querySelector('.roll-picker-container');
-    const digits = picker.querySelectorAll('.roll-digit');
-    
-    // Update negative class on both picker and container
-    const isNeg = isNegative && currentValue !== 0;
-    picker.classList.toggle('negative', isNeg);
-    container.classList.toggle('negative', isNeg);
-    
-    digits.forEach(digit => {
-        const position = parseInt(digit.dataset.position);
-        const display = digit.querySelector('.roll-display');
-        const digitValue = Math.floor(absValue / Math.pow(10, position)) % 10;
-        
-        display.textContent = digitValue;
-    });
-}
-
-function animateDigitChange(display) {
-    display.classList.add('changed');
-    setTimeout(() => {
-        display.classList.remove('changed');
-    }, 300);
-}
-
-function clearRollPicker() {
-    currentValue = 0;
-    isNegative = false;
-    updateRollDisplay();
-    updateHiddenInput();
-    
-    // Animate all digits
-    const displays = document.querySelectorAll('.roll-display');
-    displays.forEach(display => {
-        animateDigitChange(display);
-    });
-}
-
-function toggleNegative() {
-    if (currentValue !== 0) {
-        isNegative = !isNegative;
-        currentValue = -currentValue;
-        updateRollDisplay();
-        updateHiddenInput();
-    }
-}
-
-function updateHiddenInput() {
-    const hiddenInput = document.getElementById('expenseAmount');
-    hiddenInput.value = currentValue.toString();
-}
-
-function resetRollPicker() {
-    currentValue = 0;
-    isNegative = false;
-    updateRollDisplay();
-    updateHiddenInput();
-}
-
-// Input Toggle Functions
-let isRollMode = true;
-
-function initializeInputToggle() {
-    const toggle = document.getElementById('inputToggle');
-    const rollContainer = document.getElementById('rollPickerContainer');
-    const normalContainer = document.getElementById('normalInputContainer');
-    const normalInput = document.getElementById('normalAmountInput');
-    
-    // Set initial state (Normal mode by default)
-    toggle.checked = false;
-    isRollMode = false;
-    
-    // Toggle event
-    toggle.addEventListener('change', () => {
-        isRollMode = toggle.checked;
-        
-        if (isRollMode) {
-            // Switch to Roll mode
-            rollContainer.style.display = 'block';
-            normalContainer.style.display = 'none';
-            
-            // Transfer value from normal to roll
-            const normalValue = parseInt(normalInput.value) || 0;
-            setRollPickerValue(normalValue);
-            
-        } else {
-            // Switch to Normal mode
-            rollContainer.style.display = 'none';
-            normalContainer.style.display = 'block';
-            
-            // Transfer value from roll to normal
-            normalInput.value = currentValue;
-            updateHiddenInputFromNormal();
-            
-            // Focus on normal input
-            setTimeout(() => normalInput.focus(), 100);
+    // Ensure value is always a valid number when not empty
+    amountInput.addEventListener('input', () => {
+        const value = amountInput.value;
+        if (value !== '' && isNaN(parseInt(value))) {
+            amountInput.value = '';
         }
     });
-    
-    // Normal input change event
-    normalInput.addEventListener('input', () => {
-        if (!isRollMode) {
-            updateHiddenInputFromNormal();
-        }
-    });
-    
-    // Set initial display state (Normal mode by default)
-    rollContainer.style.display = 'none';
-    normalContainer.style.display = 'block';
-}
-
-function setRollPickerValue(value) {
-    currentValue = Math.abs(value);
-    isNegative = value < 0;
-    updateRollDisplay();
-    updateHiddenInput();
-}
-
-function updateHiddenInputFromNormal() {
-    const normalInput = document.getElementById('normalAmountInput');
-    const hiddenInput = document.getElementById('expenseAmount');
-    const value = parseInt(normalInput.value) || 0;
-    hiddenInput.value = value.toString();
-}
-
-function resetNormalInput() {
-    const normalInput = document.getElementById('normalAmountInput');
-    normalInput.value = '';
-    if (!isRollMode) {
-        updateHiddenInputFromNormal();
-    }
 }
 
 // Date picker toggle functionality
