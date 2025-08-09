@@ -78,32 +78,46 @@ export function populateDetailsTable(details) {
         return;
     }
     
-    // Sort details by time (newest first)
-    const sortedDetails = [...details].sort((a, b) => {
-        return new Date(b.time) - new Date(a.time);
-    });
+    // Group details by day
+    const groupedDetails = groupDetailsByDay(details);
     
-    tableBody.innerHTML = sortedDetails.map(detail => {
-        // Format time to show only time without date
-        const timeObj = new Date(detail.time);
-        const timeString = timeObj.toLocaleTimeString('id-ID', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            hour12: false 
-        });
+    // Generate HTML for grouped details
+    let htmlContent = '';
+    
+    Object.keys(groupedDetails).forEach(dayName => {
+        const dayDetails = groupedDetails[dayName];
         
-        // Check if amount is negative to apply green color
-        const isNegative = detail.amount && detail.amount.includes('-');
-        const amountClass = isNegative ? 'detail-amount negative' : 'detail-amount';
-        
-        return `
-            <tr class="detail-row-clickable" data-detail='${JSON.stringify(detail)}'>
-                <td class="detail-time">${timeString}</td>
-                <td class="detail-type">${detail.type || '-'}</td>
-                <td class="${amountClass}">${detail.amount || '-'}</td>
+        // Add day header
+        htmlContent += `
+            <tr class="day-header">
+                <td colspan="3" class="day-header-cell">${dayName}</td>
             </tr>
         `;
-    }).join('');
+        
+        // Add details for this day
+        dayDetails.forEach(detail => {
+            const timeObj = new Date(detail.time);
+            const timeString = timeObj.toLocaleTimeString('id-ID', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+            });
+            
+            // Check if amount is negative to apply green color
+            const isNegative = detail.amount && detail.amount.includes('-');
+            const amountClass = isNegative ? 'detail-amount negative' : 'detail-amount';
+            
+            htmlContent += `
+                <tr class="detail-row-clickable" data-detail='${JSON.stringify(detail)}'>
+                    <td class="detail-time">${timeString}</td>
+                    <td class="detail-type">${detail.type || '-'}</td>
+                    <td class="${amountClass}">${detail.amount || '-'}</td>
+                </tr>
+            `;
+        });
+    });
+    
+    tableBody.innerHTML = htmlContent;
     
     // Add click handlers to detail rows
     const detailRows = tableBody.querySelectorAll('.detail-row-clickable');
@@ -119,4 +133,39 @@ export function populateDetailsTable(details) {
 function getDayName(dayIndex) {
     const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     return days[dayIndex] || '-';
+}
+
+// Helper function to group details by day
+function groupDetailsByDay(details) {
+    const grouped = {};
+    
+    details.forEach(detail => {
+        const dateObj = new Date(detail.time);
+        const dayName = getDayName(dateObj.getDay());
+        
+        if (!grouped[dayName]) {
+            grouped[dayName] = [];
+        }
+        
+        grouped[dayName].push(detail);
+    });
+    
+    // Sort each day's details by time (newest first within each day)
+    Object.keys(grouped).forEach(dayName => {
+        grouped[dayName].sort((a, b) => {
+            return new Date(b.time) - new Date(a.time);
+        });
+    });
+    
+    // Return grouped details in day order (Monday to Sunday)
+    const dayOrder = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    const orderedGrouped = {};
+    
+    dayOrder.forEach(dayName => {
+        if (grouped[dayName]) {
+            orderedGrouped[dayName] = grouped[dayName];
+        }
+    });
+    
+    return orderedGrouped;
 }

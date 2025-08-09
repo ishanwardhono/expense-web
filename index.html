@@ -90,10 +90,10 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        <label for="expenseDate">Tanggal & Waktu</label>
                         <div class="date-toggle-header">
                             <div class="date-input-wrapper">
-                                <input type="date" id="expenseDate" name="date" disabled>
-                                <label for="expenseDate" class="date-label">Tanggal</label>
+                                <input type="datetime-local" id="expenseDate" name="date" disabled>
                             </div>
                             <div class="date-toggle-switch">
                                 <span class="toggle-label">Off</span>
@@ -104,6 +104,19 @@
                                 <span class="toggle-label">On</span>
                             </div>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="expenseType">Tipe</label>
+                        <select id="expenseType" name="type" class="expense-type-select">
+                            <option value="Konsumsi" selected>Konsumsi</option>
+                            <option value="Belanja">Belanja</option>
+                            <option value="Laundry">Laundry</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="expenseNote">Catatan (Opsional)</label>
+                        <textarea id="expenseNote" name="note" class="expense-note-textarea" placeholder="Masukkan catatan pengeluaran..." rows="2"></textarea>
                     </div>
                     <div class="form-actions">
                         <button type="button" id="cancelBtn" class="secondary-button">Batal</button>

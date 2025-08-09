@@ -515,73 +515,82 @@ body {
     text-align: center;
 }
 
-.date-input-wrapper input[type="date"]:focus {
+.date-input-wrapper input[type="datetime-local"] {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.date-input-wrapper input[type="date"]:focus,
+.date-input-wrapper input[type="datetime-local"]:focus {
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.date-input-wrapper input[type="date"]:disabled {
+.date-input-wrapper input[type="date"]:disabled,
+.date-input-wrapper input[type="datetime-local"]:disabled {
     background-color: #f8f9fa;
-    color: transparent;
     cursor: not-allowed;
     opacity: 0.6;
 }
 
-/* Hide browser's default date placeholder when disabled */
-.date-input-wrapper input[type="date"]:disabled::-webkit-datetime-edit {
-    color: transparent;
-}
-
-.date-input-wrapper input[type="date"]:disabled::-webkit-datetime-edit-fields-wrapper {
-    color: transparent;
-}
-
-.date-input-wrapper input[type="date"]:disabled::-webkit-datetime-edit-text {
-    color: transparent;
-}
-
-.date-input-wrapper input[type="date"]:disabled::-webkit-datetime-edit-day-field {
-    color: transparent;
-}
-
-.date-input-wrapper input[type="date"]:disabled::-webkit-datetime-edit-month-field {
-    color: transparent;
-}
-
-.date-input-wrapper input[type="date"]:disabled::-webkit-datetime-edit-year-field {
-    color: transparent;
-}
-
-.date-input-wrapper input[type="date"]:disabled::-webkit-inner-spin-button,
-.date-input-wrapper input[type="date"]:disabled::-webkit-calendar-picker-indicator {
-    display: none;
-    -webkit-appearance: none;
-}
-
-.date-label {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    padding: 0 8px;
-    font-weight: 600;
-    color: #333;
+/* Expense Type Select */
+.expense-type-select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
     font-size: 1rem;
-    pointer-events: none;
+    background-color: white;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.expense-type-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.expense-type-select option {
+    padding: 8px;
+    font-size: 1rem;
+}
+
+/* Fix dropdown positioning issues on mobile */
+
+/* Expense Note Textarea */
+.expense-note-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
     transition: all 0.3s ease;
-    z-index: 1;
+    box-sizing: border-box;
+    min-height: 60px;
+    max-height: 200px;
 }
 
-.date-input-wrapper input[type="date"]:not(:disabled) + .date-label {
-    display: none;
+.expense-note-textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    min-height: 100px;
 }
 
-.date-input-wrapper input[type="date"]:disabled + .date-label {
-    display: block;
+.expense-note-textarea::placeholder {
     color: #6c757d;
-    background: #f8f9fa;
+    opacity: 0.8;
 }
 
 .form-help {
@@ -883,6 +892,25 @@ body {
 
 .detail-amount.negative {
     color: #58e15f !important;
+}
+
+.day-header {
+    background-color: #f8f9fa !important;
+}
+
+.day-header-cell {
+    font-weight: 600 !important;
+    color: #495057 !important;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border-top: 2px solid #dee2e6 !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    padding: 12px 15px !important;
+    text-align: center !important;
+    font-size: 0.95em;
+}
+
+.day-header:hover {
+    background-color: #f8f9fa !important;
 }
 
 .no-data {

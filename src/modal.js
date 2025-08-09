@@ -7,14 +7,21 @@ export function initializeModal(config, refreshData) {
     const form = document.getElementById('addExpenseForm');
     const dateInput = document.getElementById('expenseDate');
     
-    // Set date input as disabled by default
+    // Set date input as disabled by default and show current time
     dateInput.disabled = true;
+    setCurrentDateTime();
     
     // Initialize amount input with negative toggle
     initializeAmountInput();
     
     // Initialize date picker toggle
     initializeDateToggle();
+    
+    // Initialize textarea auto-resize
+    initializeTextareaResize();
+    
+    // Initialize datetime clear button override
+    initializeDateTimeClearOverride();
     
     // Show modal
     addBtn.addEventListener('click', () => {
@@ -69,19 +76,29 @@ function resetForm() {
     const dateInput = document.getElementById('expenseDate');
     const dateToggle = document.getElementById('dateToggle');
     const amountInput = document.getElementById('expenseAmount');
+    const typeSelect = document.getElementById('expenseType');
+    const noteTextarea = document.getElementById('expenseNote');
     
     form.reset();
     
     // Reset date toggle to disabled state
     dateToggle.checked = false;
     dateInput.disabled = true;
-    dateInput.value = '';
+    setCurrentDateTime();
     
     // Clear amount input
     amountInput.value = '';
     
+    // Reset type to default (Konsumsi)
+    typeSelect.value = 'Konsumsi';
+    
+    // Clear note textarea
+    noteTextarea.value = '';
+    noteTextarea.style.height = '60px'; // Reset height to default
+    noteTextarea.style.minHeight = '60px'; // Reset min-height to default
+    
     // Remove any error states
-    const inputs = form.querySelectorAll('input');
+    const inputs = form.querySelectorAll('input, select, textarea');
     inputs.forEach(input => {
         input.classList.remove('error');
     });
@@ -102,8 +119,10 @@ async function handleExpenseSubmit(e, config, refreshData) {
     // Get form values
     const amount = parseInt(formData.get('amount'));
     const selectedDate = formData.get('date');
+    const expenseType = formData.get('type') || 'Konsumsi';
+    const expenseNote = formData.get('note') || '';
     const dateToggle = document.getElementById('dateToggle');
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date();
     
     // Validate amount - only prevent exactly 0
     if (amount === 0) {
@@ -122,13 +141,30 @@ async function handleExpenseSubmit(e, config, refreshData) {
     // If date toggle is on and a date is selected, use that date
     let dateToSend = null;
     if (dateToggle.checked && !dateInput.disabled && selectedDate) {
-        // Only send date if it's different from today
-        dateToSend = selectedDate === today ? null : selectedDate;
+        // Format the datetime-local value to match Go's expected format: "2006-01-02 15:04:05"
+        const dateObj = new Date(selectedDate);
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const hours = String(dateObj.getHours()).padStart(2, '0');
+        const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+        const seconds = String(dateObj.getSeconds()).padStart(2, '0');
+        
+        dateToSend = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        
+        // Only send date if it's different from today (comparing just the date part)
+        const todayStr = today.toISOString().split('T')[0];
+        const selectedDateStr = selectedDate.split('T')[0];
+        if (selectedDateStr === todayStr && hours === '00' && minutes === '00') {
+            dateToSend = null; // Use server's current time
+        }
     }
     
     const requestData = {
         amount: amount,
-        date: dateToSend
+        date: dateToSend,
+        type: expenseType,
+        note: expenseNote
     };
     
     try {
@@ -295,9 +331,9 @@ function initializeDateToggle() {
             dateInput.disabled = false;
             setWeekDateRange();
         } else {
-            // Disable date picker
+            // Disable date picker and set current time
             dateInput.disabled = true;
-            dateInput.value = '';
+            setCurrentDateTime();
         }
     });
 }
@@ -314,25 +350,103 @@ function setWeekDateRange() {
     const daysUntilMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Handle Sunday as 0
     const monday = new Date(currentDate);
     monday.setDate(currentDate.getDate() + daysUntilMonday);
+    monday.setHours(0, 0, 0, 0); // Start of Monday
     
     // Get the Sunday of the current week
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999); // End of Sunday
     
-    // Format dates as YYYY-MM-DD
-    const mondayStr = monday.toISOString().split('T')[0];
-    const sundayStr = sunday.toISOString().split('T')[0];
+    // Format dates for datetime-local input (YYYY-MM-DDTHH:MM)
+    const formatDatetimeLocal = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
     
-    // Set the date picker constraints
+    const mondayStr = formatDatetimeLocal(monday);
+    const sundayStr = formatDatetimeLocal(sunday);
+    
+    // Set the datetime picker constraints
     dateInput.min = mondayStr;
     dateInput.max = sundayStr;
     
-    // Set default value to today if it's within the current week
-    const todayStr = currentDate.toISOString().split('T')[0];
-    if (todayStr >= mondayStr && todayStr <= sundayStr) {
-        dateInput.value = todayStr;
+    // Set default value to current time if it's within the current week
+    const now = new Date();
+    if (now >= monday && now <= sunday) {
+        dateInput.value = formatDatetimeLocal(now);
     } else {
-        // If somehow today is not in the current week range, set to Monday
+        // If somehow current time is not in the current week range, set to Monday
         dateInput.value = mondayStr;
     }
+}
+
+// Initialize textarea auto-resize functionality
+function initializeTextareaResize() {
+    const noteTextarea = document.getElementById('expenseNote');
+    
+    // Function to auto-resize textarea
+    function autoResize() {
+        noteTextarea.style.height = 'auto';
+        noteTextarea.style.height = noteTextarea.scrollHeight + 'px';
+    }
+    
+    // Add event listeners for textarea resize
+    noteTextarea.addEventListener('input', autoResize);
+    noteTextarea.addEventListener('focus', () => {
+        // Expand slightly when focused if empty
+        if (!noteTextarea.value) {
+            noteTextarea.style.minHeight = '100px';
+        }
+        autoResize();
+    });
+    noteTextarea.addEventListener('blur', () => {
+        // Reset min-height when losing focus if empty
+        if (!noteTextarea.value) {
+            noteTextarea.style.minHeight = '60px';
+            noteTextarea.style.height = '60px'; // Force reset height
+        }
+    });
+}
+
+// Set current date and time to the datetime input
+function setCurrentDateTime() {
+    const dateInput = document.getElementById('expenseDate');
+    const now = new Date();
+    
+    // Format datetime for datetime-local input (YYYY-MM-DDTHH:MM)
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+    dateInput.value = formattedDateTime;
+}
+
+// Override the clear button behavior to set current date/time instead
+function initializeDateTimeClearOverride() {
+    const dateInput = document.getElementById('expenseDate');
+    
+    // Listen for input changes that result in empty value (clear button click)
+    dateInput.addEventListener('input', (e) => {
+        if (e.target.value === '' && !dateInput.disabled) {
+            // If the input was cleared and it's enabled, set current time instead
+            setTimeout(() => {
+                setCurrentDateTime();
+            }, 0);
+        }
+    });
+    
+    // Also listen for change events
+    dateInput.addEventListener('change', (e) => {
+        if (e.target.value === '' && !dateInput.disabled) {
+            // If the input was cleared and it's enabled, set current time instead
+            setCurrentDateTime();
+        }
+    });
 }
