@@ -46,6 +46,23 @@
                 Tambah Pengeluaran
             </button>
         </div>
+
+        <!-- Expense Details Section -->
+        <div class="details-section">
+            <h2 class="details-title">Detail Pengeluaran</h2>
+            <table class="details-table">
+                <thead>
+                    <tr>
+                        <th>Waktu</th>
+                        <th>Tipe</th>
+                        <th>Jumlah</th>
+                    </tr>
+                </thead>
+                <tbody id="detailsTableBody">
+                    <!-- Detail rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Modal for adding expense -->
@@ -93,6 +110,36 @@
                         <button type="submit" id="submitBtn" class="primary-button">Simpan</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for viewing expense details -->
+    <div id="expenseDetailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detail Pengeluaran</h3>
+                <button class="close-button" id="closeDetailModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-info">
+                    <div class="detail-row">
+                        <span class="detail-label">Waktu:</span>
+                        <span id="detailTime" class="detail-value"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Tipe:</span>
+                        <span id="detailType" class="detail-value"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Jumlah:</span>
+                        <span id="detailAmount" class="detail-value"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Catatan:</span>
+                        <span id="detailNote" class="detail-value"></span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

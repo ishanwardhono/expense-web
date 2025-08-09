@@ -1,4 +1,5 @@
 import { initializeModal, showModal, hideModal, addExpense } from './modal.js';
+import { initializeDetails, populateDetailsTable } from './details.js';
 
 const config = {
     getWeeklyExpenseUrl: import.meta.env.VITE_GET_WEEKLY_EXPENSE_URL, 
@@ -267,6 +268,11 @@ function populateTable(data) {
 function loadData(data) {
     populateHeader(data);
     populateTable(data);
+    
+    // Populate details table if details exist
+    if (data.remaining && data.remaining.details) {
+        populateDetailsTable(data.remaining.details);
+    }
 }
 
 // Function to update data (you can call this with new data)
@@ -314,4 +320,5 @@ export {
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     initializeModal(config, refreshData);
+    initializeDetails();
 });
