@@ -213,11 +213,17 @@ function updateRemainingAmount(elementId, remainingData) {
 
 function populateHeader(data) {
     document.getElementById('dateRange').textContent = data.date_range || `${data.week}, ${data.year}`;
-    document.getElementById('weekInfo').textContent = `${data.week}, ${data.year}`;
+    
+    // Update week subtitle
+    const weekSubtitle = document.getElementById('weekSubtitle');
+    if (weekSubtitle && data.week) {
+        weekSubtitle.textContent = `Minggu ke-${data.week}`;
+    }
     
     // Update weekday and weekend remaining amounts
     updateRemainingAmount('weekdayRemaining', data.remaining.weekday);
-    updateRemainingAmount('weekendRemaining', data.remaining.weekend);
+    updateRemainingAmount('saturdayRemaining', data.remaining.saturday);
+    updateRemainingAmount('sundayRemaining', data.remaining.sunday);
 }
 
 function populateTable(data) {
@@ -238,6 +244,8 @@ function populateTable(data) {
         } else if (amount === 'Ga ada jajan') {
             rowClass = 'no-snack';
             displayAmount = 'Ga ada jajan';
+        } else if (amount.includes('-')) {
+            rowClass = 'no-snack';
         } else {
             // Check if this is the current day
             if (dayName === data.day_label) {

@@ -31,6 +31,14 @@ body {
     text-overflow: ellipsis;
 }
 
+.week-subtitle {
+    margin: 0 0 5px 0;
+    font-size: 0.8em;
+    opacity: 0.9;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
 .info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
