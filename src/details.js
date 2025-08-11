@@ -150,10 +150,10 @@ function groupDetailsByDay(details) {
         grouped[dayName].push(detail);
     });
     
-    // Sort each day's details by time (newest first within each day)
+    // Sort each day's details by time (oldest first within each day)
     Object.keys(grouped).forEach(dayName => {
         grouped[dayName].sort((a, b) => {
-            return new Date(b.time) - new Date(a.time);
+            return new Date(a.time) - new Date(b.time);
         });
     });
     
