@@ -7,17 +7,21 @@ export function initializeModal(config, refreshData) {
     const form = document.getElementById('addExpenseForm');
     const dateInput = document.getElementById('expenseDate');
     
-    // Set date input as disabled by default
+    // Set date input as disabled by default and show current time
     dateInput.disabled = true;
+    setCurrentDateTime();
     
-    // Initialize roll number picker
-    initializeRollPicker();
-    
-    // Initialize input toggle
-    initializeInputToggle();
+    // Initialize amount input with negative toggle
+    initializeAmountInput();
     
     // Initialize date picker toggle
     initializeDateToggle();
+    
+    // Initialize textarea auto-resize
+    initializeTextareaResize();
+    
+    // Initialize datetime clear button override
+    initializeDateTimeClearOverride();
     
     // Show modal
     addBtn.addEventListener('click', () => {
@@ -55,14 +59,9 @@ export function showModal() {
     const modal = document.getElementById('addExpenseModal');
     modal.classList.add('show');
     
-    // Focus on appropriate input based on mode
+    // Focus on amount input
     setTimeout(() => {
-        if (isRollMode) {
-            // For roll mode, we don't need to focus on anything specific
-            // The roll picker is always ready for interaction
-        } else {
-            document.getElementById('normalAmountInput').focus();
-        }
+        document.getElementById('expenseAmount').focus();
     }, 100);
 }
 
@@ -76,32 +75,33 @@ function resetForm() {
     const form = document.getElementById('addExpenseForm');
     const dateInput = document.getElementById('expenseDate');
     const dateToggle = document.getElementById('dateToggle');
-    const inputToggle = document.getElementById('inputToggle');
-    const rollContainer = document.getElementById('rollPickerContainer');
-    const normalContainer = document.getElementById('normalInputContainer');
+    const amountInput = document.getElementById('expenseAmount');
+    const typeSelect = document.getElementById('expenseType');
+    const noteTextarea = document.getElementById('expenseNote');
     
     form.reset();
     
     // Reset date toggle to disabled state
     dateToggle.checked = false;
     dateInput.disabled = true;
-    dateInput.value = '';
+    setCurrentDateTime();
     
-    // Reset input toggle to Normal mode (default state)
-    inputToggle.checked = false;
-    isRollMode = false;
-    rollContainer.style.display = 'none';
-    normalContainer.style.display = 'block';
+    // Clear amount input
+    amountInput.value = '';
+    
+    // Reset type to default (Konsumsi)
+    typeSelect.value = 'Konsumsi';
+    
+    // Clear note textarea
+    noteTextarea.value = '';
+    noteTextarea.style.height = '60px'; // Reset height to default
+    noteTextarea.style.minHeight = '60px'; // Reset min-height to default
     
     // Remove any error states
-    const inputs = form.querySelectorAll('input');
+    const inputs = form.querySelectorAll('input, select, textarea');
     inputs.forEach(input => {
         input.classList.remove('error');
     });
-    
-    // Reset both input types
-    resetRollPicker();
-    resetNormalInput();
     
     // Hide error section
     hideModalError();
@@ -119,8 +119,10 @@ async function handleExpenseSubmit(e, config, refreshData) {
     // Get form values
     const amount = parseInt(formData.get('amount'));
     const selectedDate = formData.get('date');
+    const expenseType = formData.get('type') || 'Konsumsi';
+    const expenseNote = formData.get('note') || '';
     const dateToggle = document.getElementById('dateToggle');
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date();
     
     // Validate amount - only prevent exactly 0
     if (amount === 0) {
@@ -139,13 +141,30 @@ async function handleExpenseSubmit(e, config, refreshData) {
     // If date toggle is on and a date is selected, use that date
     let dateToSend = null;
     if (dateToggle.checked && !dateInput.disabled && selectedDate) {
-        // Only send date if it's different from today
-        dateToSend = selectedDate === today ? null : selectedDate;
+        // Format the datetime-local value to match Go's expected format: "2006-01-02 15:04:05"
+        const dateObj = new Date(selectedDate);
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const hours = String(dateObj.getHours()).padStart(2, '0');
+        const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+        const seconds = String(dateObj.getSeconds()).padStart(2, '0');
+        
+        dateToSend = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        
+        // Only send date if it's different from today (comparing just the date part)
+        const todayStr = today.toISOString().split('T')[0];
+        const selectedDateStr = selectedDate.split('T')[0];
+        if (selectedDateStr === todayStr && hours === '00' && minutes === '00') {
+            dateToSend = null; // Use server's current time
+        }
     }
     
     const requestData = {
         amount: amount,
-        date: dateToSend
+        date: dateToSend,
+        type: expenseType,
+        note: expenseNote
     };
     
     try {
@@ -276,215 +295,24 @@ function showSuccessMessage(message) {
     }, 3000);
 }
 
-// Roll Number Picker Functions
-let currentValue = 0;
-let isNegative = false;
-
-function initializeRollPicker() {
-    const picker = document.getElementById('rollNumberPicker');
-    const clearBtn = document.getElementById('rollClearBtn');
-    const negateBtn = document.getElementById('rollNegateBtn');
+// Amount Input Functions
+function initializeAmountInput() {
+    const amountInput = document.getElementById('expenseAmount');
+    const negateBtn = document.getElementById('negateBtn');
     
-    // Initialize digit buttons
-    const digits = picker.querySelectorAll('.roll-digit');
-    digits.forEach(digit => {
-        const position = parseInt(digit.dataset.position);
-        const upBtn = digit.querySelector('.roll-btn-up');
-        const downBtn = digit.querySelector('.roll-btn-down');
-        const display = digit.querySelector('.roll-display');
-        
-        // Up button functionality
-        upBtn.addEventListener('click', () => {
-            incrementDigit(position);
-            animateDigitChange(display);
-        });
-        
-        // Down button functionality  
-        downBtn.addEventListener('click', () => {
-            decrementDigit(position);
-            animateDigitChange(display);
-        });
-    });
-    
-    // Clear button
-    clearBtn.addEventListener('click', () => {
-        clearRollPicker();
-    });
-    
-    // Negate button (+/-)
+    // Handle negate button click
     negateBtn.addEventListener('click', () => {
-        toggleNegative();
+        const currentValue = parseInt(amountInput.value) || 0;
+        amountInput.value = (-currentValue).toString();
     });
     
-    // Initialize display
-    updateRollDisplay();
-}
-
-function incrementDigit(position) {
-    const digitValue = Math.floor(Math.abs(currentValue) / Math.pow(10, position)) % 10;
-    const increment = Math.pow(10, position);
-    
-    if (digitValue === 9) {
-        // If digit is 9, set it to 0 and carry over
-        currentValue = currentValue - (9 * increment);
-    } else {
-        // Normal increment
-        currentValue = isNegative ? currentValue - increment : currentValue + increment;
-    }
-    
-    updateRollDisplay();
-    updateHiddenInput();
-}
-
-function decrementDigit(position) {
-    const digitValue = Math.floor(Math.abs(currentValue) / Math.pow(10, position)) % 10;
-    const decrement = Math.pow(10, position);
-    
-    if (digitValue === 0) {
-        // If digit is 0, set it to 9 and borrow
-        currentValue = currentValue + (9 * decrement);
-    } else {
-        // Normal decrement
-        currentValue = isNegative ? currentValue + decrement : currentValue - decrement;
-    }
-    
-    updateRollDisplay();
-    updateHiddenInput();
-}
-
-function updateRollDisplay() {
-    const absValue = Math.abs(currentValue);
-    const picker = document.getElementById('rollNumberPicker');
-    const container = document.querySelector('.roll-picker-container');
-    const digits = picker.querySelectorAll('.roll-digit');
-    
-    // Update negative class on both picker and container
-    const isNeg = isNegative && currentValue !== 0;
-    picker.classList.toggle('negative', isNeg);
-    container.classList.toggle('negative', isNeg);
-    
-    digits.forEach(digit => {
-        const position = parseInt(digit.dataset.position);
-        const display = digit.querySelector('.roll-display');
-        const digitValue = Math.floor(absValue / Math.pow(10, position)) % 10;
-        
-        display.textContent = digitValue;
-    });
-}
-
-function animateDigitChange(display) {
-    display.classList.add('changed');
-    setTimeout(() => {
-        display.classList.remove('changed');
-    }, 300);
-}
-
-function clearRollPicker() {
-    currentValue = 0;
-    isNegative = false;
-    updateRollDisplay();
-    updateHiddenInput();
-    
-    // Animate all digits
-    const displays = document.querySelectorAll('.roll-display');
-    displays.forEach(display => {
-        animateDigitChange(display);
-    });
-}
-
-function toggleNegative() {
-    if (currentValue !== 0) {
-        isNegative = !isNegative;
-        currentValue = -currentValue;
-        updateRollDisplay();
-        updateHiddenInput();
-    }
-}
-
-function updateHiddenInput() {
-    const hiddenInput = document.getElementById('expenseAmount');
-    hiddenInput.value = currentValue.toString();
-}
-
-function resetRollPicker() {
-    currentValue = 0;
-    isNegative = false;
-    updateRollDisplay();
-    updateHiddenInput();
-}
-
-// Input Toggle Functions
-let isRollMode = true;
-
-function initializeInputToggle() {
-    const toggle = document.getElementById('inputToggle');
-    const rollContainer = document.getElementById('rollPickerContainer');
-    const normalContainer = document.getElementById('normalInputContainer');
-    const normalInput = document.getElementById('normalAmountInput');
-    
-    // Set initial state (Normal mode by default)
-    toggle.checked = false;
-    isRollMode = false;
-    
-    // Toggle event
-    toggle.addEventListener('change', () => {
-        isRollMode = toggle.checked;
-        
-        if (isRollMode) {
-            // Switch to Roll mode
-            rollContainer.style.display = 'block';
-            normalContainer.style.display = 'none';
-            
-            // Transfer value from normal to roll
-            const normalValue = parseInt(normalInput.value) || 0;
-            setRollPickerValue(normalValue);
-            
-        } else {
-            // Switch to Normal mode
-            rollContainer.style.display = 'none';
-            normalContainer.style.display = 'block';
-            
-            // Transfer value from roll to normal
-            normalInput.value = currentValue;
-            updateHiddenInputFromNormal();
-            
-            // Focus on normal input
-            setTimeout(() => normalInput.focus(), 100);
+    // Ensure value is always a valid number when not empty
+    amountInput.addEventListener('input', () => {
+        const value = amountInput.value;
+        if (value !== '' && isNaN(parseInt(value))) {
+            amountInput.value = '';
         }
     });
-    
-    // Normal input change event
-    normalInput.addEventListener('input', () => {
-        if (!isRollMode) {
-            updateHiddenInputFromNormal();
-        }
-    });
-    
-    // Set initial display state (Normal mode by default)
-    rollContainer.style.display = 'none';
-    normalContainer.style.display = 'block';
-}
-
-function setRollPickerValue(value) {
-    currentValue = Math.abs(value);
-    isNegative = value < 0;
-    updateRollDisplay();
-    updateHiddenInput();
-}
-
-function updateHiddenInputFromNormal() {
-    const normalInput = document.getElementById('normalAmountInput');
-    const hiddenInput = document.getElementById('expenseAmount');
-    const value = parseInt(normalInput.value) || 0;
-    hiddenInput.value = value.toString();
-}
-
-function resetNormalInput() {
-    const normalInput = document.getElementById('normalAmountInput');
-    normalInput.value = '';
-    if (!isRollMode) {
-        updateHiddenInputFromNormal();
-    }
 }
 
 // Date picker toggle functionality
@@ -503,9 +331,9 @@ function initializeDateToggle() {
             dateInput.disabled = false;
             setWeekDateRange();
         } else {
-            // Disable date picker
+            // Disable date picker and set current time
             dateInput.disabled = true;
-            dateInput.value = '';
+            setCurrentDateTime();
         }
     });
 }
@@ -522,25 +350,103 @@ function setWeekDateRange() {
     const daysUntilMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Handle Sunday as 0
     const monday = new Date(currentDate);
     monday.setDate(currentDate.getDate() + daysUntilMonday);
+    monday.setHours(0, 0, 0, 0); // Start of Monday
     
     // Get the Sunday of the current week
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999); // End of Sunday
     
-    // Format dates as YYYY-MM-DD
-    const mondayStr = monday.toISOString().split('T')[0];
-    const sundayStr = sunday.toISOString().split('T')[0];
+    // Format dates for datetime-local input (YYYY-MM-DDTHH:MM)
+    const formatDatetimeLocal = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
     
-    // Set the date picker constraints
+    const mondayStr = formatDatetimeLocal(monday);
+    const sundayStr = formatDatetimeLocal(sunday);
+    
+    // Set the datetime picker constraints
     dateInput.min = mondayStr;
     dateInput.max = sundayStr;
     
-    // Set default value to today if it's within the current week
-    const todayStr = currentDate.toISOString().split('T')[0];
-    if (todayStr >= mondayStr && todayStr <= sundayStr) {
-        dateInput.value = todayStr;
+    // Set default value to current time if it's within the current week
+    const now = new Date();
+    if (now >= monday && now <= sunday) {
+        dateInput.value = formatDatetimeLocal(now);
     } else {
-        // If somehow today is not in the current week range, set to Monday
+        // If somehow current time is not in the current week range, set to Monday
         dateInput.value = mondayStr;
     }
+}
+
+// Initialize textarea auto-resize functionality
+function initializeTextareaResize() {
+    const noteTextarea = document.getElementById('expenseNote');
+    
+    // Function to auto-resize textarea
+    function autoResize() {
+        noteTextarea.style.height = 'auto';
+        noteTextarea.style.height = noteTextarea.scrollHeight + 'px';
+    }
+    
+    // Add event listeners for textarea resize
+    noteTextarea.addEventListener('input', autoResize);
+    noteTextarea.addEventListener('focus', () => {
+        // Expand slightly when focused if empty
+        if (!noteTextarea.value) {
+            noteTextarea.style.minHeight = '100px';
+        }
+        autoResize();
+    });
+    noteTextarea.addEventListener('blur', () => {
+        // Reset min-height when losing focus if empty
+        if (!noteTextarea.value) {
+            noteTextarea.style.minHeight = '60px';
+            noteTextarea.style.height = '60px'; // Force reset height
+        }
+    });
+}
+
+// Set current date and time to the datetime input
+function setCurrentDateTime() {
+    const dateInput = document.getElementById('expenseDate');
+    const now = new Date();
+    
+    // Format datetime for datetime-local input (YYYY-MM-DDTHH:MM)
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+    dateInput.value = formattedDateTime;
+}
+
+// Override the clear button behavior to set current date/time instead
+function initializeDateTimeClearOverride() {
+    const dateInput = document.getElementById('expenseDate');
+    
+    // Listen for input changes that result in empty value (clear button click)
+    dateInput.addEventListener('input', (e) => {
+        if (e.target.value === '' && !dateInput.disabled) {
+            // If the input was cleared and it's enabled, set current time instead
+            setTimeout(() => {
+                setCurrentDateTime();
+            }, 0);
+        }
+    });
+    
+    // Also listen for change events
+    dateInput.addEventListener('change', (e) => {
+        if (e.target.value === '' && !dateInput.disabled) {
+            // If the input was cleared and it's enabled, set current time instead
+            setCurrentDateTime();
+        }
+    });
 }
