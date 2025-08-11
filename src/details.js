@@ -150,13 +150,6 @@ function groupDetailsByDay(details) {
         grouped[dayName].push(detail);
     });
     
-    // Sort each day's details by time (oldest first within each day)
-    Object.keys(grouped).forEach(dayName => {
-        grouped[dayName].sort((a, b) => {
-            return new Date(a.time) - new Date(b.time);
-        });
-    });
-    
     // Return grouped details in day order (Monday to Sunday)
     const dayOrder = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
     const orderedGrouped = {};
