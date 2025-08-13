@@ -52,7 +52,7 @@ export function showDetailModal(detail) {
     document.getElementById('detailTime').textContent = fullDateTime;
     document.getElementById('detailType').textContent = detail.type || '-';
     document.getElementById('detailAmount').textContent = detail.amount || '-';
-    document.getElementById('detailNote').textContent = detail.note || 'Tidak ada catatan';
+    document.getElementById('detailNote').textContent = detail.note || '-';
     
     modal.classList.add('show');
     document.body.style.overflow = 'hidden';
