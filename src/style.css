@@ -1156,10 +1156,7 @@ body {
     box-shadow: none !important;
 }
 
-.nav-icon, .button-icon {
-    font-size: 16px;
-    font-weight: bold;
-}
+/* Duplicate rule for .nav-icon, .button-icon removed; consolidated at previous occurrence */
 
 /* Weekly table specific styles for monthly view */
 .week-row {
