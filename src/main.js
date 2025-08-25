@@ -1,11 +1,20 @@
 import { initializeModal, showModal, hideModal, addExpense } from './modal.js';
-import { initializeDetails, populateDetailsTable } from './details.js';
+import { initializeDetails, populateDetailsTable, showDetailModal } from './details.js';
+import { initializeTabs, switchTab, getCurrentTab, addTabTransitions } from './tabs.js';
+import { initializeMonthly, loadMonthlyData } from './monthly.js';
 
 const config = {
     getWeeklyExpenseUrl: import.meta.env.VITE_GET_WEEKLY_EXPENSE_URL, 
     addWeeklyExpenseUrl: import.meta.env.VITE_ADD_WEEKLY_EXPENSE_URL,
+    getMonthlyExpenseUrl: import.meta.env.VITE_GET_MONTHLY_EXPENSE_URL || import.meta.env.VITE_GET_WEEKLY_EXPENSE_URL,
+    addMonthlyExpenseUrl: import.meta.env.VITE_ADD_MONTHLY_EXPENSE_URL || import.meta.env.VITE_ADD_WEEKLY_EXPENSE_URL,
     timeout: parseInt(import.meta.env.VITE_API_TIMEOUT)
 };
+
+// Make functions globally available for cross-module communication
+window.showModal = showModal;
+window.showDetailModal = showDetailModal;
+window.loadMonthlyData = loadMonthlyData;
 
 // Function to fetch data from API
 async function fetchExpenseData() {
@@ -273,6 +282,23 @@ function loadData(data) {
     if (data.remaining && data.remaining.details) {
         populateDetailsTable(data.remaining.details);
     }
+    
+    // Hide weekly navigation buttons by default
+    updateWeeklyNavigationButtons();
+}
+
+// Function to hide weekly navigation buttons by default
+function updateWeeklyNavigationButtons() {
+    const prevWeekBtn = document.getElementById('prevWeekBtn');
+    const nextWeekBtn = document.getElementById('nextWeekBtn');
+    
+    // Hide navigation buttons by default (similar to monthly functionality)
+    if (prevWeekBtn) {
+        prevWeekBtn.style.display = 'none';
+    }
+    if (nextWeekBtn) {
+        nextWeekBtn.style.display = 'none';
+    }
 }
 
 // Function to update data (you can call this with new data)
@@ -318,7 +344,29 @@ export {
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tab system first
+    initializeTabs();
+    addTabTransitions();
+    
+    // Initialize weekly expense functionality
     initializeApp();
     initializeModal(config, refreshData);
     initializeDetails();
+    
+    // Initialize monthly expense functionality
+    initializeMonthly();
+    
+    // Listen for tab changes to trigger appropriate data loading
+    document.addEventListener('tabChanged', (e) => {
+        if (e.detail.tab === 'weekly') {
+            // Refresh weekly data when switching to weekly tab
+            refreshData();
+        } else if (e.detail.tab === 'monthly') {
+            // Load monthly data when switching to monthly tab
+            loadMonthlyData();
+        }
+    });
+    
+    // Load initial data for the default tab (weekly)
+    refreshData();
 });
