@@ -1,8 +1,8 @@
 // Monthly expense functionality
 
 const config = {
-    getMonthlyExpenseUrl: import.meta.env.VITE_GET_MONTHLY_EXPENSE_URL || import.meta.env.VITE_GET_WEEKLY_EXPENSE_URL,
-    addMonthlyExpenseUrl: import.meta.env.VITE_ADD_MONTHLY_EXPENSE_URL || import.meta.env.VITE_ADD_WEEKLY_EXPENSE_URL,
+    getMonthlyExpenseUrl: import.meta.env.VITE_GET_MONTHLY_EXPENSE_URL,
+    addMonthlyExpenseUrl: import.meta.env.VITE_ADD_MONTHLY_EXPENSE_URL,
     timeout: parseInt(import.meta.env.VITE_API_TIMEOUT) || 5000
 };
 
