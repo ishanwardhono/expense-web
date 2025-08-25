@@ -16,6 +16,7 @@ function updateExpenseTypeOptions(context) {
         { value: 'Konsumsi', label: 'Konsumsi', selected: true },
         { value: 'Belanja', label: 'Belanja', selected: false },
         { value: 'Laundry', label: 'Laundry', selected: false },
+        { value: 'Air Minum', label: 'Air Minum', selected: false },
         { value: 'Lainnya', label: 'Lainnya', selected: false }
     ];
     
