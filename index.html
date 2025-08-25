@@ -9,59 +9,136 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1 id="dateRange"></h1>
-            <p id="weekSubtitle" class="week-subtitle"></p>
-            <div class="info-grid">
-                <div class="info-item">
-                    <div class="info-label">Sisa Weekday</div>
-                    <div class="info-value" id="weekdayRemaining">-</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Sisa Sabtu</div>
-                    <div class="info-value" id="saturdayRemaining">-</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Sisa Minggu</div>
-                    <div class="info-value" id="sundayRemaining">-</div>
-                </div>
-            </div>
-        </div>
-        
-        <table class="expense-table">
-            <thead>
-                <tr>
-                    <th>Hari</th>
-                    <th>Sisa Uang</th>
-                </tr>
-            </thead>
-            <tbody id="expenseTableBody">
-                <!-- Table rows will be populated by JavaScript -->
-            </tbody>
-        </table>
-        
-        <div class="table-actions">
-            <button id="addExpenseBtn" class="primary-button">
-                <span class="button-icon">+</span>
-                Tambah Pengeluaran
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-button active" data-tab="weekly">
+                <span class="tab-icon">📅</span>
+                <span class="tab-text">Mingguan</span>
+            </button>
+            <button class="tab-button" data-tab="monthly">
+                <span class="tab-icon">🗓️</span>
+                <span class="tab-text">Bulanan</span>
             </button>
         </div>
 
-        <!-- Expense Details Section -->
-        <div class="details-section">
-            <h2 class="details-title">Detail Pengeluaran</h2>
-            <table class="details-table">
+        <!-- Weekly Expense Tab -->
+        <div id="weeklyTab" class="tab-content active">
+            <div class="header">
+                <h1 id="dateRange"></h1>
+                <p id="weekSubtitle" class="week-subtitle"></p>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Sisa Weekday</div>
+                        <div class="info-value" id="weekdayRemaining">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Sisa Sabtu</div>
+                        <div class="info-value" id="saturdayRemaining">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Sisa Mingguan</div>
+                        <div class="info-value" id="sundayRemaining">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <table class="expense-table">
                 <thead>
                     <tr>
-                        <th>Waktu</th>
-                        <th>Tipe</th>
-                        <th>Jumlah</th>
+                        <th>Hari</th>
+                        <th>Sisa Uang</th>
                     </tr>
                 </thead>
-                <tbody id="detailsTableBody">
-                    <!-- Detail rows will be populated by JavaScript -->
+                <tbody id="expenseTableBody">
+                    <!-- Table rows will be populated by JavaScript -->
                 </tbody>
             </table>
+            
+            <div class="table-actions">
+                <button id="prevWeekBtn" class="secondary-button" style="display: none;">
+                    <span class="nav-icon">‹</span>
+                    Minggu Sebelumnya
+                </button>
+                <button id="addExpenseBtn" class="primary-button">
+                    <span class="button-icon">+</span>
+                    Tambah Pengeluaran
+                </button>
+                <button id="nextWeekBtn" class="secondary-button" style="display: none;">
+                    Minggu Selanjutnya
+                    <span class="nav-icon">›</span>
+                </button>
+            </div>
+
+            <!-- Expense Details Section -->
+            <div class="details-section">
+                <h2 class="details-title">Detail Pengeluaran Mingguan</h2>
+                <table class="details-table">
+                    <thead>
+                        <tr>
+                            <th>Waktu</th>
+                            <th>Tipe</th>
+                            <th>Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailsTableBody">
+                        <!-- Detail rows will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Monthly Expense Tab -->
+        <div id="monthlyTab" class="tab-content">
+            <div class="header">
+                <h1 id="monthDateRange"></h1>
+                <p id="monthSubtitle" class="month-subtitle"></p>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Total Mingguan</div>
+                        <div class="info-value" id="monthlyTotalWeeks">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Budget</div>
+                        <div class="info-value" id="monthlyBudget">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Sisa Bulanan</div>
+                        <div class="info-value" id="monthlyRemaining">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-actions">
+                <button id="prevMonthBtn" class="secondary-button">
+                    <span class="nav-icon">‹</span>
+                    Bulan Sebelumnya
+                </button>
+                <button id="addMonthlyExpenseBtn" class="primary-button">
+                    <span class="button-icon">+</span>
+                    Tambah Pengeluaran
+                </button>
+                <button id="nextMonthBtn" class="secondary-button">
+                    Bulan Selanjutnya
+                    <span class="nav-icon">›</span>
+                </button>
+            </div>
+
+            <!-- Monthly Expense Details Section -->
+            <div class="details-section">
+                <h2 class="details-title">Detail Pengeluaran Bulanan</h2>
+                <table class="details-table">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Tipe</th>
+                            <th>Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthlyDetailsTableBody">
+                        <!-- Detail rows will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -69,7 +146,7 @@
     <div id="addExpenseModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Tambah Pengeluaran</h3>
+                <h3 id="modalTitle">Tambah Pengeluaran</h3>
                 <button class="close-button" id="closeModal">&times;</button>
             </div>
             <div class="modal-body">
@@ -108,10 +185,7 @@
                     <div class="form-group">
                         <label for="expenseType">Tipe</label>
                         <select id="expenseType" name="type" class="expense-type-select">
-                            <option value="Konsumsi" selected>Konsumsi</option>
-                            <option value="Belanja">Belanja</option>
-                            <option value="Laundry">Laundry</option>
-                            <option value="Lainnya">Lainnya</option>
+                            <!-- Options will be populated dynamically by JavaScript -->
                         </select>
                     </div>
                     <div class="form-group">

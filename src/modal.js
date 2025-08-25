@@ -1,7 +1,56 @@
 // Modal and Form Management Functions
+
+let currentModalContext = 'weekly'; // Track whether we're in weekly or monthly mode
+
+// Get current modal context
+export function getCurrentModalContext() {
+    return currentModalContext;
+}
+
+// Update expense type options based on context
+function updateExpenseTypeOptions(context) {
+    const typeSelect = document.getElementById('expenseType');
+    
+    // Define options for each context
+    const weeklyOptions = [
+        { value: 'Konsumsi', label: 'Konsumsi', selected: true },
+        { value: 'Belanja', label: 'Belanja', selected: false },
+        { value: 'Laundry', label: 'Laundry', selected: false },
+        { value: 'Lainnya', label: 'Lainnya', selected: false }
+    ];
+    
+    const monthlyOptions = [
+        { value: 'Lainnya', label: 'Lainnya', selected: true },
+        { value: 'Subscription', label: 'Subscription', selected: false },
+        { value: 'Cash', label: 'Cash', selected: false },
+        { value: 'Listrik', label: 'Listrik', selected: false },
+        { value: 'Kesehatan', label: 'Kesehatan', selected: false },
+        { value: 'Internet', label: 'Internet', selected: false },
+        { value: 'Maintenance', label: 'Maintenance', selected: false }
+    ];
+    
+    // Choose options based on context
+    const options = context === 'monthly' ? monthlyOptions : weeklyOptions;
+    
+    // Clear existing options
+    typeSelect.innerHTML = '';
+    
+    // Add new options
+    options.forEach(option => {
+        const optionElement = document.createElement('option');
+        optionElement.value = option.value;
+        optionElement.textContent = option.label;
+        if (option.selected) {
+            optionElement.selected = true;
+        }
+        typeSelect.appendChild(optionElement);
+    });
+}
+
 export function initializeModal(config, refreshData) {
     const modal = document.getElementById('addExpenseModal');
     const addBtn = document.getElementById('addExpenseBtn');
+    const addMonthlyBtn = document.getElementById('addMonthlyExpenseBtn');
     const closeBtn = document.getElementById('closeModal');
     const cancelBtn = document.getElementById('cancelBtn');
     const form = document.getElementById('addExpenseForm');
@@ -10,6 +59,9 @@ export function initializeModal(config, refreshData) {
     // Set date input as disabled by default and show current time
     dateInput.disabled = true;
     setCurrentDateTime();
+    
+    // Initialize expense type options with default (weekly) context
+    updateExpenseTypeOptions('weekly');
     
     // Initialize amount input with negative toggle
     initializeAmountInput();
@@ -23,9 +75,18 @@ export function initializeModal(config, refreshData) {
     // Initialize datetime clear button override
     initializeDateTimeClearOverride();
     
-    // Show modal
-    addBtn.addEventListener('click', () => {
-        showModal();
+    // Show modal for weekly expenses
+    addBtn?.addEventListener('click', () => {
+        currentModalContext = 'weekly';
+        document.getElementById('modalTitle').textContent = 'Tambah Pengeluaran Mingguan';
+        showModal(currentModalContext);
+    });
+    
+    // Show modal for monthly expenses
+    addMonthlyBtn?.addEventListener('click', () => {
+        currentModalContext = 'monthly';
+        document.getElementById('modalTitle').textContent = 'Tambah Pengeluaran Bulanan';
+        showModal(currentModalContext);
     });
     
     // Hide modal
@@ -55,20 +116,31 @@ export function initializeModal(config, refreshData) {
     });
 }
 
-export function showModal() {
+export function showModal(context = 'weekly') {
+    currentModalContext = context;
     const modal = document.getElementById('addExpenseModal');
+    
+    // Update expense type options based on context
+    updateExpenseTypeOptions(context);
+    
     modal.classList.add('show');
     
     // Focus on amount input
     setTimeout(() => {
         document.getElementById('expenseAmount').focus();
     }, 100);
+    
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
 }
 
 export function hideModal() {
     const modal = document.getElementById('addExpenseModal');
     modal.classList.remove('show');
     resetForm();
+    
+    // Restore body scroll
+    document.body.style.overflow = 'auto';
 }
 
 function resetForm() {
@@ -89,8 +161,9 @@ function resetForm() {
     // Clear amount input
     amountInput.value = '';
     
-    // Reset type to default (Konsumsi)
-    typeSelect.value = 'Konsumsi';
+    // Reset type to default based on current context
+    const defaultValue = currentModalContext === 'monthly' ? 'Lainnya' : 'Konsumsi';
+    typeSelect.value = defaultValue;
     
     // Clear note textarea
     noteTextarea.value = '';
@@ -179,10 +252,23 @@ async function handleExpenseSubmit(e, config, refreshData) {
         
         // Success - close modal and refresh data
         hideModal();
-        await refreshData();
+        
+        // Call appropriate refresh function based on context
+        if (currentModalContext === 'monthly') {
+            // Refresh monthly data
+            if (window.loadMonthlyData) {
+                await window.loadMonthlyData();
+            }
+        } else {
+            // Refresh weekly data
+            await refreshData();
+        }
         
         // Show success message
-        showSuccessMessage('Pengeluaran berhasil ditambahkan!');
+        const message = currentModalContext === 'monthly' 
+            ? 'Pengeluaran bulanan berhasil ditambahkan!' 
+            : 'Pengeluaran berhasil ditambahkan!';
+        showSuccessMessage(message);
         
     } catch (error) {
         console.error('Error adding expense:', error);
@@ -196,12 +282,20 @@ async function handleExpenseSubmit(e, config, refreshData) {
 
 export async function addExpense(data, config) {
     try {
-        const response = await fetch(config.addWeeklyExpenseUrl, {
+        // Choose the appropriate API endpoint based on context
+        const apiUrl = currentModalContext === 'monthly' 
+            ? (config.addMonthlyExpenseUrl || config.addWeeklyExpenseUrl)
+            : config.addWeeklyExpenseUrl;
+            
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify({
+                ...data,
+                context: currentModalContext // Add context to the request
+            }),
             signal: AbortSignal.timeout(config.timeout)
         });
         
