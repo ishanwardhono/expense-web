@@ -24,6 +24,7 @@ function updateExpenseTypeOptions(context) {
         { value: 'Lainnya', label: 'Lainnya', selected: true },
         { value: 'Subscription', label: 'Subscription', selected: false },
         { value: 'Cash', label: 'Cash', selected: false },
+        { value: 'Vacation', label: 'Vacation', selected: false },
         { value: 'Listrik', label: 'Listrik', selected: false },
         { value: 'Kesehatan', label: 'Kesehatan', selected: false },
         { value: 'Internet', label: 'Internet', selected: false },
