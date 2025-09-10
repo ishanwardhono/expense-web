@@ -247,17 +247,17 @@ function addNewRecapCard(data) {
     totalRow.className = 'recap-total-row';
 
     const totalDescCell = document.createElement('td');
-    totalDescCell.className = 'recap-description';
+    totalDescCell.className = 'recap-description recap-total-cell';
     totalDescCell.textContent = 'Total';
     totalRow.appendChild(totalDescCell);
 
     const totalAmountCell = document.createElement('td');
-    totalAmountCell.className = 'recap-amount';
+    totalAmountCell.className = 'recap-amount recap-total-cell';
     totalAmountCell.textContent = data.expense || '-';
     totalRow.appendChild(totalAmountCell);
 
     const totalRemainingCell = document.createElement('td');
-    totalRemainingCell.className = 'recap-remaining';
+    totalRemainingCell.className = 'recap-remaining recap-total-cell';
     totalRemainingCell.textContent = data.remaining ? data.remaining.label : '-';
     
     // Apply color for total remaining

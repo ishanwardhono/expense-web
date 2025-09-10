@@ -241,14 +241,14 @@ body {
 }
 
 .recap-amount {
-    font-weight: 600;
+    font-weight: 500;
     color: #333;
     text-align: right;
     width: calc(100% / 3);
 }
 
 .recap-remaining {
-    font-weight: 600;
+    font-weight: 500;
     text-align: right;
     width: calc(100% / 3);
 }
@@ -263,13 +263,20 @@ body {
 
 .recap-total-row {
     background: #f8f9fa;
-    font-weight: 700;
 }
 
 .recap-total-row .recap-description {
     font-weight: 700;
     color: #333;
 }
+
+/* Only bold amount/remaining on the total (last) row */
+.recap-total-row .recap-amount,
+.recap-total-row .recap-remaining {
+    font-weight: 700;
+}
+
+/* Only make the Total label bold */
 
 .recap-card-actions {
     padding: 20px 30px;
