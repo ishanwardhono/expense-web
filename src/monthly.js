@@ -9,11 +9,29 @@ const config = {
 let currentMonth = new Date();
 let monthlyData = null;
 
+// Function to reset monthly data
+export function resetMonthlyData() {
+    monthlyData = null;
+    currentMonth = new Date();
+    
+    // Clear the display elements
+    const monthDateRange = document.getElementById('monthDateRange');
+    const monthSubtitle = document.getElementById('monthSubtitle');
+    const monthlyTotalWeeks = document.getElementById('monthlyTotalWeeks');
+    const monthlyBudget = document.getElementById('monthlyBudget');
+    const monthlyRemaining = document.getElementById('monthlyRemaining');
+    const monthlyDetailsTableBody = document.getElementById('monthlyDetailsTableBody');
+    
+    if (monthDateRange) monthDateRange.textContent = '';
+    if (monthSubtitle) monthSubtitle.textContent = '';
+    if (monthlyTotalWeeks) monthlyTotalWeeks.textContent = '-';
+    if (monthlyBudget) monthlyBudget.textContent = '-';
+    if (monthlyRemaining) monthlyRemaining.textContent = '-';
+    if (monthlyDetailsTableBody) monthlyDetailsTableBody.innerHTML = '';
+}
+
 // Initialize monthly expense functionality
 export function initializeMonthly() {
-    // Load initial monthly data
-    loadMonthlyData();
-    
     // Add event listeners
     const prevMonthBtn = document.getElementById('prevMonthBtn');
     const nextMonthBtn = document.getElementById('nextMonthBtn');
@@ -67,9 +85,40 @@ function updateMonthDisplay(data) {
     }
 }
 
+// Function to show loading state for monthly tab
+function showMonthlyLoadingState() {
+    // Remove any existing loading messages first
+    hideMonthlyLoadingState();
+    
+    const monthlyTab = document.getElementById('monthlyTab');
+    if (!monthlyTab) return;
+    
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'loading-message monthly-loading';
+    loadingDiv.innerHTML = `
+        <h3>📅 Loading Monthly Data</h3>
+        <p>Fetching monthly expense data from server...</p>
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+        </div>
+    `;
+    
+    // Insert loading message at the top of the monthly tab
+    monthlyTab.insertBefore(loadingDiv, monthlyTab.firstChild);
+}
+
+// Function to hide loading state for monthly tab
+function hideMonthlyLoadingState() {
+    const loadingMessages = document.querySelectorAll('.monthly-loading');
+    loadingMessages.forEach(msg => msg.remove());
+}
+
 // Load monthly data
 export async function loadMonthlyData() {
     try {
+        // Show loading state
+        showMonthlyLoadingState();
+        
         const response = await fetch(config.getMonthlyExpenseUrl, {
             method: 'GET',
             headers: {
@@ -87,13 +136,15 @@ export async function loadMonthlyData() {
         // Store the monthly data
         monthlyData = data;
         
-        // Update displays with real data
+        // Remove loading state and update displays with real data
+        hideMonthlyLoadingState();
         updateMonthDisplay(data);
         updateMonthlyDisplay(data);
         updateMonthlyDetailsTable(data.remaining?.details || []);
         
     } catch (error) {
         console.error('Failed to fetch monthly data:', error);
+        hideMonthlyLoadingState();
         showMonthlyError(error.message);
     }
 }
