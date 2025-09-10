@@ -237,20 +237,20 @@ body {
 .recap-description {
     font-weight: 500;
     color: #333;
-    width: 40%;
+    width: calc(100% / 3);
 }
 
 .recap-amount {
     font-weight: 600;
     color: #333;
     text-align: right;
-    width: 30%;
+    width: calc(100% / 3);
 }
 
 .recap-remaining {
     font-weight: 600;
     text-align: right;
-    width: 30%;
+    width: calc(100% / 3);
 }
 
 .recap-remaining.green {
@@ -688,16 +688,10 @@ body {
         font-size: 0.85em;
     }
     
-    .recap-description {
-        width: 35%;
-    }
-    
-    .recap-amount {
-        width: 32.5%;
-    }
-    
+    .recap-description,
+    .recap-amount,
     .recap-remaining {
-        width: 32.5%;
+        width: calc(100% / 3);
     }
     
     .recap-navigation {
