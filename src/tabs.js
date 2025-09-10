@@ -1,4 +1,7 @@
 // Tab management functionality
+import { resetWeeklyData } from './main.js';
+import { resetMonthlyData } from './monthly.js';
+import { resetRecapData } from './recap.js';
 
 let currentTab = 'weekly';
 
@@ -16,6 +19,21 @@ export function initializeTabs() {
 
 // Switch between tabs
 export function switchTab(tabName) {
+    // Reset data from the previous tab before switching
+    if (currentTab !== tabName) {
+        switch (currentTab) {
+            case 'weekly':
+                resetWeeklyData();
+                break;
+            case 'monthly':
+                resetMonthlyData();
+                break;
+            case 'recap':
+                resetRecapData();
+                break;
+        }
+    }
+    
     // Update tab buttons
     const tabButtons = document.querySelectorAll('.tab-button');
     tabButtons.forEach(button => {

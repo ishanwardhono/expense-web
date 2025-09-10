@@ -19,6 +19,9 @@
                 <span class="tab-icon">🗓️</span>
                 <span class="tab-text">Bulanan</span>
             </button>
+            <button class="tab-button recap-tab" data-tab="recap">
+                <span class="tab-icon">📊</span>
+            </button>
         </div>
 
         <!-- Weekly Expense Tab -->
@@ -138,6 +141,21 @@
                         <!-- Detail rows will be populated by JavaScript -->
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- Recap Tab -->
+        <div id="recapTab" class="tab-content">
+            <div class="recap-container">
+                <div id="recapTablesContainer">
+                    <!-- Tables will be populated by JavaScript -->
+                </div>
+                <div id="recapNavigation" class="recap-navigation" style="display: none;">
+                    <button id="prevRecapBtn" class="secondary-button">
+                        <span class="nav-icon">+</span>
+                        Bulan Sebelumnya
+                    </button>
+                </div>
             </div>
         </div>
     </div>

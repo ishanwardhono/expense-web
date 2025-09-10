@@ -1,13 +1,15 @@
 import { initializeModal, showModal, hideModal, addExpense } from './modal.js';
 import { initializeDetails, populateDetailsTable, showDetailModal } from './details.js';
 import { initializeTabs, switchTab, getCurrentTab, addTabTransitions } from './tabs.js';
-import { initializeMonthly, loadMonthlyData } from './monthly.js';
+import { initializeMonthly, loadMonthlyData, resetMonthlyData } from './monthly.js';
+import { initializeRecap, resetRecapData } from './recap.js';
 
 const config = {
     getWeeklyExpenseUrl: import.meta.env.VITE_GET_WEEKLY_EXPENSE_URL, 
     addWeeklyExpenseUrl: import.meta.env.VITE_ADD_WEEKLY_EXPENSE_URL,
-    getMonthlyExpenseUrl: import.meta.env.VITE_GET_MONTHLY_EXPENSE_URL || import.meta.env.VITE_GET_WEEKLY_EXPENSE_URL,
-    addMonthlyExpenseUrl: import.meta.env.VITE_ADD_MONTHLY_EXPENSE_URL || import.meta.env.VITE_ADD_WEEKLY_EXPENSE_URL,
+    getMonthlyExpenseUrl: import.meta.env.VITE_GET_MONTHLY_EXPENSE_URL,
+    addMonthlyExpenseUrl: import.meta.env.VITE_ADD_MONTHLY_EXPENSE_URL,
+    getRecapUrl: import.meta.env.VITE_GET_RECAP_URL,
     timeout: parseInt(import.meta.env.VITE_API_TIMEOUT)
 };
 
@@ -15,6 +17,26 @@ const config = {
 window.showModal = showModal;
 window.showDetailModal = showDetailModal;
 window.loadMonthlyData = loadMonthlyData;
+
+// Function to reset weekly data
+export function resetWeeklyData() {
+    // Clear the display elements
+    const dateRange = document.getElementById('dateRange');
+    const weekSubtitle = document.getElementById('weekSubtitle');
+    const weekdayRemaining = document.getElementById('weekdayRemaining');
+    const saturdayRemaining = document.getElementById('saturdayRemaining');
+    const sundayRemaining = document.getElementById('sundayRemaining');
+    const expenseTableBody = document.getElementById('expenseTableBody');
+    const detailsTableBody = document.getElementById('detailsTableBody');
+    
+    if (dateRange) dateRange.textContent = '';
+    if (weekSubtitle) weekSubtitle.textContent = '';
+    if (weekdayRemaining) weekdayRemaining.textContent = '-';
+    if (saturdayRemaining) saturdayRemaining.textContent = '-';
+    if (sundayRemaining) sundayRemaining.textContent = '-';
+    if (expenseTableBody) expenseTableBody.innerHTML = '';
+    if (detailsTableBody) detailsTableBody.innerHTML = '';
+}
 
 // Function to fetch data from API
 async function fetchExpenseData() {
@@ -125,16 +147,19 @@ function displayErrorMessage(message) {
     // Remove any existing error messages first
     removeErrorMessages();
     
+    const weeklyTab = document.getElementById('weeklyTab');
+    if (!weeklyTab) return;
+    
     const errorDiv = document.createElement('div');
-    errorDiv.className = 'error-message';
+    errorDiv.className = 'error-message weekly-error';
     errorDiv.innerHTML = `
         <h3>⚠️ Error Loading Data</h3>
         <p>${message}</p>
         <button class="retry-button" onclick="retryWithFeedback()">Retry</button>
     `;
     
-    // Insert error message at the top of the body
-    document.body.insertBefore(errorDiv, document.body.firstChild);
+    // Insert error message at the top of the weekly tab
+    weeklyTab.insertBefore(errorDiv, weeklyTab.firstChild);
 }
 
 // Function to show loading state
@@ -142,29 +167,32 @@ function showLoadingState() {
     // Remove any existing loading messages first
     hideLoadingState();
     
+    const weeklyTab = document.getElementById('weeklyTab');
+    if (!weeklyTab) return;
+    
     const loadingDiv = document.createElement('div');
-    loadingDiv.className = 'loading-message';
+    loadingDiv.className = 'loading-message weekly-loading';
     loadingDiv.innerHTML = `
-        <h3>📊 Loading Data</h3>
-        <p>Fetching expense data from server...</p>
+        <h3>📊 Loading Weekly Data</h3>
+        <p>Fetching weekly expense data from server...</p>
         <div class="loading-spinner">
             <div class="spinner"></div>
         </div>
     `;
     
-    // Insert loading message at the top of the body
-    document.body.insertBefore(loadingDiv, document.body.firstChild);
+    // Insert loading message at the top of the weekly tab
+    weeklyTab.insertBefore(loadingDiv, weeklyTab.firstChild);
 }
 
 // Function to hide loading state
 function hideLoadingState() {
-    const loadingMessages = document.querySelectorAll('.loading-message');
+    const loadingMessages = document.querySelectorAll('.weekly-loading');
     loadingMessages.forEach(msg => msg.remove());
 }
 
 // Function to remove error messages
 function removeErrorMessages() {
-    const errorMessages = document.querySelectorAll('.error-message');
+    const errorMessages = document.querySelectorAll('.weekly-error');
     errorMessages.forEach(msg => msg.remove());
 }
 
@@ -355,6 +383,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize monthly expense functionality
     initializeMonthly();
+    
+    // Initialize recap functionality
+    initializeRecap(config);
     
     // Listen for tab changes to trigger appropriate data loading
     document.addEventListener('tabChanged', (e) => {
