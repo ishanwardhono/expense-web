@@ -14,11 +14,24 @@ body {
     overflow: hidden;
 }
 
-/* Tab Navigation Styles */
+/* Make container full width on mobile */
+@media (max-width: 600px) {
+    .container {
+        margin: 0;
+        border-radius: 8px;
+    }
+}
+
+/* Tab Navigation Styles - Updated for consistent layout */
 .tab-navigation {
     display: flex;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 0;
+    padding: 8px;
+    gap: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden; /* Prevent horizontal overflow on small screens */
 }
 
 .tab-button {
@@ -27,28 +40,32 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 20px 30px;
+    padding: 16px 20px;
     background: transparent;
     border: none;
-    color: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.8);
     font-size: 16px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
+    min-width: 0; /* Allow flex items to shrink below content size */
+    box-sizing: border-box;
 }
 
 /* Specific flex sizes for different tabs */
-.tab-button[data-tab="weekly"] {
-    flex: 0 0 45%;
+.tab-navigation .tab-button[data-tab="weekly"] {
+    flex: 1 !important;
 }
 
-.tab-button[data-tab="monthly"] {
-    flex: 0 0 45%;
+.tab-navigation .tab-button[data-tab="monthly"] {
+    flex: 1 !important;
 }
 
-.tab-button[data-tab="recap"] {
-    flex: 0 0 10%;
+.tab-navigation .tab-button[data-tab="recap"] {
+    flex: 0 0 72px !important; /* Slightly smaller fixed width to avoid overflow */
+    min-width: 56px;
 }
 
 /* Recap tab specific styling - only show icon */
@@ -56,42 +73,47 @@ body {
     display: none;
 }
 
-/* Specific flex sizes for different tabs */
-.tab-button[data-tab="weekly"] {
-    flex: 0 0 45%;
+/* Ensure recap tab icon is perfectly centered */
+.tab-button.recap-tab {
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 0 !important; /* Remove any gap that might offset the icon */
 }
 
-.tab-button[data-tab="monthly"] {
-    flex: 0 0 45%;
-}
-
-.tab-button[data-tab="recap"] {
-    flex: 0 0 10%;
-}
-
-/* Recap tab specific styling - only show icon */
-.tab-button.recap-tab .tab-text {
-    display: none;
+.tab-button.recap-tab .tab-icon {
+    margin: 0 auto;
+    display: block;
+    width: 100%;
+    text-align: center;
 }
 
 .tab-button:hover {
-    color: rgba(255, 255, 255, 0.9);
-    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
 }
 
 .tab-button.active {
     color: white;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
 }
 
 .tab-button.active::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: white;
+    display: none; /* Remove the bottom border line */
+}
+
+/* Disable hover transforms on touch devices to prevent sticky hover states */
+@media (hover: none) {
+    .tab-button:hover {
+        transform: none;
+    }
+    
+    .tab-button.active {
+        transform: none;
+    }
 }
 
 .tab-icon {
@@ -100,6 +122,9 @@ body {
 
 .tab-text {
     font-weight: 600;
+    overflow: hidden; /* Enable ellipsis when space is tight */
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Tab Content Styles */
@@ -123,11 +148,26 @@ body {
     flex-direction: column;
     gap: 10px;
     min-height: 60vh;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* Reduce padding for recap tab to maximize table width */
 #recapTab.tab-content {
     padding: 20px 15px;
+}
+
+/* Ensure recap container spans and centers children by default */
+#recapTablesContainer {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#recapTablesContainer .recap-card,
+#recapTablesContainer .recap-table,
+#recapTablesContainer .recap-details-table {
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .recap-card {
@@ -475,6 +515,43 @@ body {
         border-radius: 8px;
     }
     
+    /* Improve tab navigation on mobile */
+    .tab-navigation {
+        padding: 6px;
+        gap: 3px;
+        overflow: hidden; /* contain children */
+    }
+    
+    .tab-button {
+        padding: 12px 16px;
+        font-size: 14px;
+        border-radius: 6px;
+        min-width: 0; /* allow shrink */
+        white-space: nowrap;
+    }
+    
+    .tab-button[data-tab="recap"] {
+        flex: 0 0 56px !important; /* reduce fixed width to keep inside */
+        min-width: 48px;
+        padding: 12px 0 !important; /* center icon */
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
+    }
+    
+    /* Force perfect centering on mobile for recap tab */
+    .tab-button[data-tab="recap"] .tab-icon {
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .tab-icon {
+        font-size: 16px;
+    }
+    
     .header h1 {
         font-size: 1.2em;
     }
@@ -488,39 +565,74 @@ body {
 @media (max-width: 400px) {
     body {
         padding: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
     }
     
     .container {
         padding: 10px;
-        margin: 0;
+        margin: 0 auto;
         border-radius: 6px;
+        width: 100%;
+        max-width: 400px;
+        box-sizing: border-box;
+    }
+    
+    /* Even more compact tab navigation on very small screens */
+    .tab-navigation {
+        padding: 4px;
+        gap: 2px;
+        overflow: hidden;
+    }
+    
+    .tab-button {
+        padding: 10px 12px;
+        font-size: 13px;
+        border-radius: 4px;
+        min-width: 0;
+        white-space: nowrap;
+    }
+    
+    .tab-button[data-tab="recap"] {
+        flex: 0 0 52px !important; /* tighter on very small screens */
+        min-width: 44px;
+        padding: 10px 0 !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+    
+    /* Ensure recap tab icon is perfectly centered on very small screens */
+    .tab-button[data-tab="recap"] .tab-icon {
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .tab-icon {
+        font-size: 14px;
     }
     
     .header h1 {
         font-size: 1em;
     }
     
-    .tab-button {
-        padding: 15px 10px;
-        font-size: 14px;
-    }
-    
-    /* Maintain flex proportions on small screens */
+    /* Maintain tab proportions */
     .tab-button[data-tab="weekly"] {
-        flex: 0 0 45%;
+        flex: 1;
     }
 
     .tab-button[data-tab="monthly"] {
-        flex: 0 0 45%;
-    }
-
-    .tab-button[data-tab="recap"] {
-        flex: 0 0 10%;
+        flex: 1;
     }
     
     /* Weekly tab: Keep table visible - hide first column, show remaining money */
     #weeklyTab .expense-table {
         display: table !important;
+        
         width: 100%;
     }
     
@@ -532,7 +644,18 @@ body {
     
     /* Recap responsive styles */
     .recap-card {
-        margin: 0 10px 20px 10px; /* Added bottom margin back */
+        margin: 0 auto 20px auto; /* Center cards at very small widths */
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Strongly center any recap table elements */
+    #recapTablesContainer {
+        width: 100%;
+    }
+    #recapTablesContainer .recap-details-table {
+        margin-left: auto;
+        margin-right: auto;
     }
     
     .recap-header {
@@ -1563,21 +1686,35 @@ body {
 /* Responsive design for monthly view */
 @media (max-width: 768px) {
     .tab-button {
-        padding: 15px 20px;
-        font-size: 14px;
+    padding: 15px 20px;
+    font-size: 14px;
+    min-width: 0;
+    white-space: nowrap;
     }
     
     /* Maintain flex proportions on medium screens */
     .tab-button[data-tab="weekly"] {
-        flex: 0 0 45%;
+        flex: 1;
     }
 
     .tab-button[data-tab="monthly"] {
-        flex: 0 0 45%;
+        flex: 1;
     }
 
     .tab-button[data-tab="recap"] {
-        flex: 0 0 10%;
+        flex: 0 0 64px !important;
+        min-width: 52px;
+        padding: 15px 0 !important; /* Remove horizontal padding to center perfectly */
+        justify-content: center !important;
+        align-items: center !important;
+    }
+    
+    /* Force perfect centering on tablet for recap tab */
+    .tab-button[data-tab="recap"] .tab-icon {
+        margin: 0 !important;
+        display: block;
+        width: 100%;
+        text-align: center;
     }
     
     .tab-icon {
@@ -1609,19 +1746,33 @@ body {
     .tab-button {
         padding: 12px 15px;
         gap: 4px;
+    min-width: 0;
+    white-space: nowrap;
     }
     
     /* Maintain flex proportions on smallest screens */
     .tab-button[data-tab="weekly"] {
-        flex: 0 0 45%;
+        flex: 1;
     }
 
     .tab-button[data-tab="monthly"] {
-        flex: 0 0 45%;
+        flex: 1;
     }
 
     .tab-button[data-tab="recap"] {
-        flex: 0 0 10%;
+        flex: 0 0 56px !important;
+        min-width: 48px;
+        padding: 12px 0 !important; /* Remove horizontal padding to center perfectly */
+        justify-content: center !important;
+        align-items: center !important;
+    }
+    
+    /* Force perfect centering on small screens for recap tab */
+    .tab-button[data-tab="recap"] .tab-icon {
+        margin: 0 !important;
+        display: block;
+        width: 100%;
+        text-align: center;
     }
     
     .tab-text {
@@ -1665,3 +1816,4 @@ body {
         margin-left: 0;
     }
 }
+/* Cache-bust: Wed Sep 10 14:19:38 WIB 2025 */
