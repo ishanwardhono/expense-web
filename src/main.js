@@ -393,7 +393,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Refresh weekly data when switching to weekly tab
             refreshData();
         } else if (e.detail.tab === 'monthly') {
-            // Load monthly data when switching to monthly tab
+            // Reset and load monthly data when switching to monthly tab
+            resetMonthlyData();
             loadMonthlyData();
         }
     });

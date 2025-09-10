@@ -147,7 +147,9 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    min-height: 60vh;
+    /* Let the recap container size to its content to avoid large whitespace */
+    height: auto;
+    min-height: unset;
     width: 100%;
     box-sizing: border-box;
 }

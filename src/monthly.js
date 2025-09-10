@@ -28,6 +28,12 @@ export function resetMonthlyData() {
     if (monthlyBudget) monthlyBudget.textContent = '-';
     if (monthlyRemaining) monthlyRemaining.textContent = '-';
     if (monthlyDetailsTableBody) monthlyDetailsTableBody.innerHTML = '';
+
+    // Also clear any loading or error messages specific to monthly
+    const loadingMessages = document.querySelectorAll('.monthly-loading');
+    loadingMessages.forEach(msg => msg.remove());
+    const errorCells = document.querySelectorAll('#monthlyDetailsTableBody .error-data');
+    errorCells.forEach(cell => cell.parentElement?.remove());
 }
 
 // Initialize monthly expense functionality
@@ -61,12 +67,7 @@ export function initializeMonthly() {
     if (prevMonthBtn) prevMonthBtn.style.display = 'none';
     if (nextMonthBtn) nextMonthBtn.style.display = 'none';
     
-    // Listen for tab changes
-    document.addEventListener('tabChanged', (e) => {
-        if (e.detail.tab === 'monthly') {
-            loadMonthlyData();
-        }
-    });
+    // Tab changes are handled centrally in main.js
 }
 
 // Update month display
