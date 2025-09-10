@@ -224,6 +224,16 @@ body {
     border-bottom: none;
 }
 
+/* Recap table responsive font sizes */
+@media (max-width: 600px) and (min-width: 481px) {
+    #recapTab .recap-details-table td,
+    #recapTab .recap-description,
+    #recapTab .recap-amount,
+    #recapTab .recap-remaining {
+        font-size: 0.9em;
+    }
+}
+
 .recap-description {
     font-weight: 500;
     color: #333;
@@ -563,6 +573,13 @@ body {
 }
 
 @media (max-width: 400px) {
+    #recapTab .recap-details-table td,
+    #recapTab .recap-description,
+    #recapTab .recap-amount,
+    #recapTab .recap-remaining {
+        font-size: 0.8em;
+    }
+
     body {
         padding: 5px;
         display: flex;
@@ -1140,6 +1157,13 @@ body {
 
 /* Mobile responsiveness */
 @media (max-width: 480px) {
+    #recapTab .recap-details-table td,
+    #recapTab .recap-description,
+    #recapTab .recap-amount,
+    #recapTab .recap-remaining {
+        font-size: 0.85em;
+    }
+
     .modal-content {
         width: 95%;
         margin: 20px;
