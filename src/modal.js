@@ -380,8 +380,17 @@ function showSuccessMessage(message) {
         <p>${message}</p>
     `;
     
-    // Insert success message at the top of the body
-    document.body.insertBefore(successDiv, document.body.firstChild);
+    // Insert success message at the top of the active tab content (same as loading messages)
+    const activeTab = document.querySelector('.tab-content.active');
+    if (activeTab) {
+        activeTab.insertBefore(successDiv, activeTab.firstChild);
+    } else {
+        // Fallback: insert at top of container
+        const container = document.querySelector('.container');
+        if (container) {
+            container.insertBefore(successDiv, container.firstChild);
+        }
+    }
     
     // Auto remove after 3 seconds
     setTimeout(() => {

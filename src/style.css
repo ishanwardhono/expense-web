@@ -711,6 +711,26 @@ body {
         padding: 10px 20px;
         font-size: 13px;
     }
+    
+    /* Fix success message positioning on mobile */
+    .success-message {
+        margin: 5px;
+        padding: 15px;
+        max-width: calc(100% - 10px);
+        width: calc(100% - 10px);
+        box-sizing: border-box;
+        position: relative;
+        left: 0;
+        right: 0;
+    }
+    
+    .success-message h3 {
+        font-size: 1.1em;
+    }
+    
+    .success-message p {
+        font-size: 0.9em;
+    }
 }
 
 /* Loading and Error Message Styles */
