@@ -1,20 +1,21 @@
 // ============================================================
-// v2 Amplop — top-level app: state, month nav, sheet routing, persistence.
-// Ported from amplop-app.jsx. Changes from the prototype:
-//  - Tweaks panel dropped; entry style is fixed to the "menu" FAB flow.
-//  - Pinned TODAY replaced with the real clock (lib/today.js).
-//  - AI scan flow deferred to Phase 5; the menu's Import option is stubbed.
-//  - localStorage via data/store.js (Phase 2 swaps in the API).
+// v2 Amplop — top-level app: state, month nav, sheet routing.
+//
+// Phase 2: data now flows through data/api.js (mock or real, env-selected)
+// instead of synchronous localStorage. The view loads a month at a time with
+// loading / error / retry states; budget config comes from the API response.
+// localStorage remains the offline cache (handled inside data/api.js).
 // ============================================================
 
-import { useEffect, useState } from 'react'
-import { MONTHS_ID, keyToDate } from './lib/dates.js'
+import { useCallback, useEffect, useState } from 'react'
+import { MONTHS_ID, keyToDate, monthPrefixOf } from './lib/dates.js'
 import { fmtK } from './lib/format.js'
 import { now, todayKey } from './lib/today.js'
-import { CFG, budgetConfig } from './lib/config.js'
+import { CFG } from './lib/config.js'
 import { CATS, catColor, envColor, tagOf } from './lib/categories.js'
 import { computeAmplop } from './lib/amplop-engine.js'
-import { loadStore, saveStore, buildByDay } from './data/store.js'
+import { buildByDay } from './data/store.js'
+import * as api from './data/api.js'
 
 import { EnvelopeCard } from './components/EnvelopeCard.jsx'
 import { AmplopCalendar } from './components/AmplopCalendar.jsx'
@@ -28,17 +29,50 @@ import { ScanEntryMenu } from './components/ScanEntryMenu.jsx'
 const TAG_STYLE = 'Garis samping'
 
 export function App() {
-  const [store, setStore] = useState(loadStore)
   const [cursor, setCursor] = useState(() => ({ y: now().getFullYear(), m: now().getMonth() }))
+  const [data, setData] = useState(null)   // { expenses, subs, config }
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [notice, setNotice] = useState(null)
   const [sheet, setSheet] = useState(null)
   const [filter, setFilter] = useState('Semua')
 
-  useEffect(() => { saveStore(store) }, [store])
-
   const y = cursor.y, m = cursor.m
-  const cfg = budgetConfig()
-  const A = computeAmplop(store.expenses, store.subs, y, m, cfg)
-  const byDay = buildByDay(store.expenses, store.subs, A.monthPrefix)
+  const monthPrefix = monthPrefixOf(y, m)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const d = await api.getMonth(y, m)
+      setData(d)
+      setNotice(d._stale ? 'Menampilkan data tersimpan (offline).' : null)
+    } catch (err) {
+      setError(err.message || 'Gagal memuat data.')
+    } finally {
+      setLoading(false)
+    }
+  }, [y, m])
+
+  useEffect(() => { load() }, [load])
+
+  // Re-fetch the current month after a successful write so the view stays true.
+  async function reload() {
+    try { setData(await api.getMonth(y, m)) } catch { /* keep current view */ }
+  }
+  async function runWrite(fn, closer) {
+    try {
+      await fn()
+      if (closer) closer()
+      await reload()
+    } catch (err) {
+      setNotice(err.message || 'Gagal menyimpan.')
+    }
+  }
+
+  const cfg = data && data.config
+  const A = data ? computeAmplop(data.expenses, data.subs, y, m, cfg) : null
+  const byDay = data ? buildByDay(data.expenses, data.subs, monthPrefix) : {}
   const spentOf = (k) => (byDay[k] || []).reduce((s, e) => s + e.amount, 0)
 
   const dayContext = (k) => {
@@ -71,30 +105,18 @@ export function App() {
       return { y: d.getFullYear(), m: d.getMonth() }
     })
   }
-  // FAB opens the entry menu (import / manual); a day cell goes straight to manual.
   function openAdd(k, from) {
-    if (from !== 'day') {
-      setSheet({ type: 'menu', k: k || todayKey(), from: from || null })
-    } else {
-      setSheet({ type: 'form', k: k || todayKey(), exp: null, from: from || null })
-    }
+    if (from !== 'day') setSheet({ type: 'menu', k: k || todayKey(), from: from || null })
+    else setSheet({ type: 'form', k: k || todayKey(), exp: null, from: from || null })
   }
-  function saveExpense(data) {
-    setStore((s) => {
-      if (data.id) {
-        return { ...s, expenses: s.expenses.map((e) => (e.id === data.id ? data : e)) }
-      }
-      return { ...s, expenses: s.expenses.concat([{ ...data, id: 'e' + Date.now() }]) }
-    })
-    closeForm()
+  function saveExpense(dataIn) {
+    runWrite(() => (dataIn.id ? api.updateExpense(dataIn) : api.addExpense(dataIn)), closeForm)
   }
   function deleteExpense(id) {
-    setStore((s) => ({ ...s, expenses: s.expenses.filter((e) => e.id !== id) }))
-    closeForm()
+    runWrite(() => api.deleteExpense(id), closeForm)
   }
   function setSubPaid(id, paid) {
-    setStore((s) => ({ ...s, subs: s.subs.map((x) => (x.id === id ? { ...x, paid } : x)) }))
-    closePay()
+    runWrite(() => api.setSubPayment(id, paid), closePay)
   }
   function closeForm() {
     setSheet((sh) => (sh && sh.from === 'day' ? { type: 'day', k: sh.k } : null))
@@ -113,8 +135,8 @@ export function App() {
 
   // ---------- Render ----------
   const cssVars = { '--accent': CFG.accent, '--cellH': CFG.cellH + 'px' }
-  const activeSub = sheet && sheet.type === 'pay'
-    ? store.subs.find((x) => x.id === sheet.subId)
+  const activeSub = sheet && sheet.type === 'pay' && data
+    ? data.subs.find((x) => x.id === sheet.subId)
     : null
 
   return (
@@ -134,20 +156,39 @@ export function App() {
         ) : null}
       </div>
 
-      <EnvelopeCard A={A} monthly={CFG.monthly} envColor={envColor}
-        onTapRow={(id) => setSheet({ type: 'env', which: id })} />
+      {notice ? (
+        <button className="notice" onClick={() => setNotice(null)}>{notice} <span className="notice-x">✕</span></button>
+      ) : null}
 
-      <AmplopCalendar y={y} m={m} spentOf={spentOf} cellH={CFG.cellH}
-        onDayTap={(k) => setSheet({ type: 'day', k })} />
+      {!data && loading ? (
+        <div className="state-card card"><div className="empty-note">Memuat data…</div></div>
+      ) : null}
 
-      <ListSection byDay={byDay} filter={filter} setFilter={setFilter} catColor={catColor}
-        cats={CATS.concat(['Langganan'])} tagOf={tagOf} tagStyle={TAG_STYLE}
-        onRowTap={(e) => openExpense(e, null, null)} />
+      {!data && error ? (
+        <div className="state-card card">
+          <div className="empty-note">{error}</div>
+          <button className="btn primary state-retry" onClick={load}>Coba lagi</button>
+        </div>
+      ) : null}
+
+      {data ? (
+        <>
+          <EnvelopeCard A={A} monthly={cfg.monthly} envColor={envColor}
+            onTapRow={(id) => setSheet({ type: 'env', which: id })} />
+
+          <AmplopCalendar y={y} m={m} spentOf={spentOf} cellH={CFG.cellH}
+            onDayTap={(k) => setSheet({ type: 'day', k })} />
+
+          <ListSection byDay={byDay} filter={filter} setFilter={setFilter} catColor={catColor}
+            cats={CATS.concat(['Langganan'])} tagOf={tagOf} tagStyle={TAG_STYLE}
+            onRowTap={(e) => openExpense(e, null, null)} />
+        </>
+      ) : null}
 
       <button className="fab" aria-label="Tambah pengeluaran hari ini"
         onClick={() => openAdd(todayKey(), null)}>+</button>
 
-      {sheet && sheet.type === 'day' ? (
+      {data && sheet && sheet.type === 'day' ? (
         <DaySheet k={sheet.k} list={byDay[sheet.k] || []}
           subLine={dayContext(sheet.k)} minis={dayMinis(sheet.k)} catColor={catColor}
           tagOf={tagOf} tagStyle={TAG_STYLE}
@@ -167,14 +208,14 @@ export function App() {
           onSave={saveExpense} onDelete={deleteExpense} onClose={closeForm} />
       ) : null}
 
-      {sheet && sheet.type === 'env' ? (
-        <EnvelopeSheet which={sheet.which} A={A} cfg={cfg} subs={store.subs}
+      {data && sheet && sheet.type === 'env' ? (
+        <EnvelopeSheet which={sheet.which} A={A} cfg={cfg} subs={data.subs}
           onTapSub={(sub) => setSheet({ type: 'pay', subId: sub.id, from: 'env' })}
           onClose={() => setSheet(null)} />
       ) : null}
 
       {activeSub ? (
-        <PaySheet sub={activeSub} monthPrefix={A.monthPrefix}
+        <PaySheet sub={activeSub} monthPrefix={monthPrefix}
           onSave={(paid) => setSubPaid(activeSub.id, paid)}
           onCancelPaid={() => setSubPaid(activeSub.id, null)}
           onClose={closePay} />
