@@ -306,14 +306,20 @@ endpoint) instead of the hard-coded `CFG`. Required for §5.2.
 - [x] Add React + Vite JSX support; set up a minimal test runner (Vitest) for
   the engine. First canonical helper `fmtRp` landed with success + failure-path
   tests.
-- [ ] Move v2 CSS into `styles/`, parameterized by `--accent` — **carried into
-  Phase 1**, blocked on the `proto/*.jsx` handoff bundle (not in this repo).
+- [x] Move v2 CSS into `styles/`, parameterized by `--accent` — done in Phase 1
+  (`styles/tokens.css` + `app.css`) once the handoff bundle was available.
 
-**Phase 1 — Static shell (offline / seed data)**
-- Port `expense-data` helpers, the engine, and all view components to ES modules.
-- Render top bar, envelope card, calendar, history, and all sheets against
-  **seed/localStorage data** (no network yet). Replace pinned `TODAY`.
-- Goal: pixel-faithful, fully interactive UI driven by local state.
+**Phase 1 — Static shell (offline / seed data)** ✅ *(done — PR #10)*
+- [x] Port `expense-data` helpers, the engine, and all view components to ES
+  modules (`src/lib/`, `src/components/`, `src/app.jsx`).
+- [x] Render top bar, envelope card, calendar, history, and all sheets against
+  **seed/localStorage data** (no network yet). Pinned `TODAY` replaced by an
+  injectable clock (`lib/today.js`).
+- [x] Goal met: interactive UI driven by local state, mounted via `v2.html`
+  (the live `index.html` stays until the Phase 3 cutover). Engine unit-tested
+  (attribution + month-boundary) + a jsdom render smoke test.
+- Note: built to the **prototype**, not the original §2.2/§7.3 text — those
+  sections were corrected (subscriptions store `paid`; no manual Langganan).
 
 **Phase 2 — Backend contract + wiring**
 - Define/adjust endpoints: `GET month` (raw expenses + subs + config),
