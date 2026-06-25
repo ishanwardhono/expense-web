@@ -88,18 +88,25 @@ weekendBudget  =   200,000   (per weekend in the month)
 flexBudget     = monthly − shopBudget − weekendBudget − subscriptionAlloc
 ```
 
-Subscription "paid" status is **derived**, not stored: a subscription counts as
-paid for a month if there's a `Langganan` expense with that `subscriptionId` in
-that month. The catalog (`SEED_SUBS`) is a pure reference table.
+Subscription "paid" status is **stored on the subscription**, not derived
+(corrected against the prototype during Phase 1 — the earlier "derived from a
+`Langganan` expense" description was inaccurate). Each subscription carries
+`paid: { date, amount } | null`; a "Bayar" sheet sets or clears it. A
+subscription counts as paid for a month when its `paid.date` falls in that
+month. Paid subscriptions also surface as synthetic `Langganan`-tagged rows in
+the day/history views. There is **no manual `Langganan` category** — the manual
+set is Makan / Belanja / Jajan / Cash / Lainnya.
 
 ### 2.3 Data model (prototype)
 
 ```js
+// Manual expense — note: NO 'Langganan' here (subscriptions are separate).
 expense = { id, date: 'YYYY-MM-DD', time: 'HH:MM', amount: <number>,
-            cat: 'Makan'|'Belanja'|'Jajan'|'Cash'|'Lainnya'|'Langganan',
-            note: <string>, subscriptionId?: <string> }
+            cat: 'Makan'|'Belanja'|'Jajan'|'Cash'|'Lainnya', note: <string> }
 
-subscription = { id, name, color, alloc: <number>, dueDay: 1..31, active: <bool> }
+// Subscription — 'paid' is STORED (see §2.2), 'due' is a full date.
+subscription = { id, name, color, alloc: <number>, due: 'YYYY-MM-DD',
+                 paid: { date: 'YYYY-MM-DD', amount: <number> } | null }
 ```
 
 Persistence in the prototype is **`localStorage`** under key
@@ -260,7 +267,8 @@ Backend `add` must accept `time`, `cat`, and `subscriptionId` (today it takes
 ### 7.2 Category taxonomy + migration
 
 v2 categories drive the envelope engine by exact name, so they must be the
-canonical set: **Makan, Belanja, Jajan, Cash, Lainnya, Langganan.**
+canonical set: **Makan, Belanja, Jajan, Cash, Lainnya.** (Langganan is *not* a
+manual category — subscription payments are a separate resource; see §2.2/§7.3.)
 
 Existing data uses different types. A migration/mapping is required, e.g.:
 
@@ -275,10 +283,11 @@ map at read-time.
 
 ### 7.3 Subscriptions
 
-New catalog resource: `{ id, name, color, alloc, dueDay, active }`. Needs
-read (and eventually CRUD) endpoints. "Paid this month" stays **derived** from
-`Langganan` expenses — do not store a `paid` flag (matches the prototype and
-its `migrateStore` logic).
+New catalog resource: `{ id, name, color, alloc, due, paid }` where
+`paid: { date, amount } | null` (see §2.2). Needs read (and eventually CRUD)
+endpoints, plus a way to set/clear a month's payment. "Paid this month" is
+**stored** on the subscription, not derived — corrected against the prototype
+in Phase 1.
 
 ### 7.4 Budget config
 

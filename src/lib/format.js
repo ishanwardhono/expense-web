@@ -1,25 +1,49 @@
 // Canonical formatting helpers for the v2 "Amplop" UI.
 //
-// Per CLAUDE.md, currency must be formatted through shared helpers rather than
-// hand-rolled at each call site. This module is the single source for that.
-//
-// Phase 0 establishes `fmtRp` (full Rupiah). The compact `fmtK` form and the
-// remaining `expense-data` helpers (dates, categories) are ported in Phase 1
-// from the prototype bundle, where their exact display format is defined.
+// Per CLAUDE.md, currency/date display must go through these shared helpers
+// rather than being hand-rolled at each call site. Ported from the prototype's
+// expense-data.jsx so the production output matches the design pixel-for-pixel.
+
+import { keyToDate, MONTHS_ID, DOWS_FULL } from './dates.js'
+
+const MINUS = '−' // U+2212 MINUS SIGN (matches the prototype, not '-')
 
 /**
- * Format an integer amount as Indonesian Rupiah, e.g. 5000000 -> "Rp5.000.000".
- *
- * Amounts in v2 are integers (no decimals). Non-finite input is treated as 0
- * so a bad value can never render "RpNaN" in the UI. Negative values (the
- * Fleksibel envelope can go negative) render as "-Rp5.000".
- *
- * @param {number} amount integer rupiah
- * @returns {string}
+ * Compact amount: 50000 -> "50K", 1250000 -> "1,25Jt", -5000 -> "−5K".
+ * Negative envelope figures (e.g. Fleksibel) render with a leading minus sign.
  */
-export function fmtRp(amount) {
-  const n = Number.isFinite(amount) ? Math.trunc(amount) : 0
-  const sign = n < 0 ? '-' : ''
-  const grouped = Math.abs(n).toLocaleString('id-ID')
-  return `${sign}Rp${grouped}`
+export function fmtK(n) {
+  const v = Number.isFinite(n) ? n : 0
+  const neg = v < 0
+  const a = Math.abs(v)
+  let s
+  if (a >= 1000000) s = (a / 1000000).toLocaleString('id-ID', { maximumFractionDigits: 2 }) + 'Jt'
+  else if (a >= 1000) s = (a / 1000).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + 'K'
+  else s = String(a)
+  return (neg ? MINUS : '') + s
+}
+
+/**
+ * Full Rupiah: 5000000 -> "Rp5.000.000".
+ *
+ * Matches the prototype, which formats the absolute value (callers only ever
+ * pass positive amounts; negative figures use {@link fmtK}, which carries its
+ * own minus sign). Non-finite input is treated as 0 so a bad value can never
+ * render "RpNaN".
+ */
+export function fmtRp(n) {
+  const a = Number.isFinite(n) ? Math.trunc(Math.abs(n)) : 0
+  return 'Rp' + a.toLocaleString('id-ID')
+}
+
+/** "Senin, 16 Juni 2026" */
+export function fmtDateLong(k) {
+  const d = keyToDate(k)
+  return DOWS_FULL[d.getDay()] + ', ' + d.getDate() + ' ' + MONTHS_ID[d.getMonth()] + ' ' + d.getFullYear()
+}
+
+/** "16 Jun" */
+export function fmtDateShort(k) {
+  const d = keyToDate(k)
+  return d.getDate() + ' ' + MONTHS_ID[d.getMonth()].slice(0, 3)
 }
