@@ -289,10 +289,16 @@ endpoint) instead of the hard-coded `CFG`. Required for §5.2.
 
 ## 8. Phased implementation plan
 
-**Phase 0 — Foundations & decisions**
-- Confirm the three §5 decisions and the §7.2 category mapping.
-- Add React + Vite JSX support; set up a minimal test runner for the engine.
-- Move v2 CSS into `styles/`, parameterized by `--accent`.
+**Phase 0 — Foundations & decisions** ✅ *(done — PR #9)*
+- [x] Confirm the three §5 decisions (React via Vite · client-side engine ·
+  defer scan flow) and §11 Recap (drop on cutover). §7.2 category mapping
+  deferred to Phase 3 (migration); budget-config source / backend ownership to
+  Phase 2 — not blockers for foundations.
+- [x] Add React + Vite JSX support; set up a minimal test runner (Vitest) for
+  the engine. First canonical helper `fmtRp` landed with success + failure-path
+  tests.
+- [ ] Move v2 CSS into `styles/`, parameterized by `--accent` — **carried into
+  Phase 1**, blocked on the `proto/*.jsx` handoff bundle (not in this repo).
 
 **Phase 1 — Static shell (offline / seed data)**
 - Port `expense-data` helpers, the engine, and all view components to ES modules.
