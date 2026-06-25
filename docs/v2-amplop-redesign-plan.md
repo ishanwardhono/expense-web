@@ -321,11 +321,18 @@ endpoint) instead of the hard-coded `CFG`. Required for §5.2.
 - Note: built to the **prototype**, not the original §2.2/§7.3 text — those
   sections were corrected (subscriptions store `paid`; no manual Langganan).
 
-**Phase 2 — Backend contract + wiring**
-- Define/adjust endpoints: `GET month` (raw expenses + subs + config),
-  `POST add/edit expense`, `DELETE expense`, `GET subscriptions`.
-- Replace localStorage reads/writes with API calls; keep localStorage as an
-  offline cache. Loading/error states per existing UX patterns.
+**Phase 2 — Backend contract + wiring** ✅ *(done — PR #11)*
+- [x] Define endpoints (contract in `data/api.js` + `.env.example`): `GET month`
+  (**padded ±7-day window** of expenses + subs + config), `POST add` / `PUT
+  update` / `POST delete` expense, `POST set-subscription-payment`. Subs ship
+  inside `GET month` (catalog CRUD is Phase 4). Backend not built yet — frontend
+  runs on an in-repo mock adapter until real URLs are set (§12 #7).
+- [x] Replace localStorage reads/writes with API calls (`data/api.js`, mock/real
+  by env flag); localStorage kept as the offline cache (`_stale` fallback).
+  Loading / error+retry / offline-notice states added. Budget config now
+  server-provided (§7.4/§12 #4).
+- Known follow-up (nit): in real mode, a successful write then a failed reload
+  shows cached data without the just-written row — revisit when the backend lands.
 
 **Phase 3 — Data migration + cutover**
 - Apply the category mapping to existing records (or read-time map).
