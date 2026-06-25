@@ -88,18 +88,25 @@ weekendBudget  =   200,000   (per weekend in the month)
 flexBudget     = monthly − shopBudget − weekendBudget − subscriptionAlloc
 ```
 
-Subscription "paid" status is **derived**, not stored: a subscription counts as
-paid for a month if there's a `Langganan` expense with that `subscriptionId` in
-that month. The catalog (`SEED_SUBS`) is a pure reference table.
+Subscription "paid" status is **stored on the subscription**, not derived
+(corrected against the prototype during Phase 1 — the earlier "derived from a
+`Langganan` expense" description was inaccurate). Each subscription carries
+`paid: { date, amount } | null`; a "Bayar" sheet sets or clears it. A
+subscription counts as paid for a month when its `paid.date` falls in that
+month. Paid subscriptions also surface as synthetic `Langganan`-tagged rows in
+the day/history views. There is **no manual `Langganan` category** — the manual
+set is Makan / Belanja / Jajan / Cash / Lainnya.
 
 ### 2.3 Data model (prototype)
 
 ```js
+// Manual expense — note: NO 'Langganan' here (subscriptions are separate).
 expense = { id, date: 'YYYY-MM-DD', time: 'HH:MM', amount: <number>,
-            cat: 'Makan'|'Belanja'|'Jajan'|'Cash'|'Lainnya'|'Langganan',
-            note: <string>, subscriptionId?: <string> }
+            cat: 'Makan'|'Belanja'|'Jajan'|'Cash'|'Lainnya', note: <string> }
 
-subscription = { id, name, color, alloc: <number>, dueDay: 1..31, active: <bool> }
+// Subscription — 'paid' is STORED (see §2.2), 'due' is a full date.
+subscription = { id, name, color, alloc: <number>, due: 'YYYY-MM-DD',
+                 paid: { date: 'YYYY-MM-DD', amount: <number> } | null }
 ```
 
 Persistence in the prototype is **`localStorage`** under key
@@ -260,7 +267,8 @@ Backend `add` must accept `time`, `cat`, and `subscriptionId` (today it takes
 ### 7.2 Category taxonomy + migration
 
 v2 categories drive the envelope engine by exact name, so they must be the
-canonical set: **Makan, Belanja, Jajan, Cash, Lainnya, Langganan.**
+canonical set: **Makan, Belanja, Jajan, Cash, Lainnya.** (Langganan is *not* a
+manual category — subscription payments are a separate resource; see §2.2/§7.3.)
 
 Existing data uses different types. A migration/mapping is required, e.g.:
 
@@ -275,10 +283,11 @@ map at read-time.
 
 ### 7.3 Subscriptions
 
-New catalog resource: `{ id, name, color, alloc, dueDay, active }`. Needs
-read (and eventually CRUD) endpoints. "Paid this month" stays **derived** from
-`Langganan` expenses — do not store a `paid` flag (matches the prototype and
-its `migrateStore` logic).
+New catalog resource: `{ id, name, color, alloc, due, paid }` where
+`paid: { date, amount } | null` (see §2.2). Needs read (and eventually CRUD)
+endpoints, plus a way to set/clear a month's payment. "Paid this month" is
+**stored** on the subscription, not derived — corrected against the prototype
+in Phase 1.
 
 ### 7.4 Budget config
 
@@ -297,14 +306,20 @@ endpoint) instead of the hard-coded `CFG`. Required for §5.2.
 - [x] Add React + Vite JSX support; set up a minimal test runner (Vitest) for
   the engine. First canonical helper `fmtRp` landed with success + failure-path
   tests.
-- [ ] Move v2 CSS into `styles/`, parameterized by `--accent` — **carried into
-  Phase 1**, blocked on the `proto/*.jsx` handoff bundle (not in this repo).
+- [x] Move v2 CSS into `styles/`, parameterized by `--accent` — done in Phase 1
+  (`styles/tokens.css` + `app.css`) once the handoff bundle was available.
 
-**Phase 1 — Static shell (offline / seed data)**
-- Port `expense-data` helpers, the engine, and all view components to ES modules.
-- Render top bar, envelope card, calendar, history, and all sheets against
-  **seed/localStorage data** (no network yet). Replace pinned `TODAY`.
-- Goal: pixel-faithful, fully interactive UI driven by local state.
+**Phase 1 — Static shell (offline / seed data)** ✅ *(done — PR #10)*
+- [x] Port `expense-data` helpers, the engine, and all view components to ES
+  modules (`src/lib/`, `src/components/`, `src/app.jsx`).
+- [x] Render top bar, envelope card, calendar, history, and all sheets against
+  **seed/localStorage data** (no network yet). Pinned `TODAY` replaced by an
+  injectable clock (`lib/today.js`).
+- [x] Goal met: interactive UI driven by local state, mounted via `v2.html`
+  (the live `index.html` stays until the Phase 3 cutover). Engine unit-tested
+  (attribution + month-boundary) + a jsdom render smoke test.
+- Note: built to the **prototype**, not the original §2.2/§7.3 text — those
+  sections were corrected (subscriptions store `paid`; no manual Langganan).
 
 **Phase 2 — Backend contract + wiring**
 - Define/adjust endpoints: `GET month` (raw expenses + subs + config),

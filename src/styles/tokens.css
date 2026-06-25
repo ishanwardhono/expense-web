@@ -1,0 +1,13 @@
+/* v2 "Amplop" design tokens. The theme keys off --accent, which is set per
+   render on .app (see app.jsx cssVars); keep that the single theming knob. */
+:root {
+    --bg: #f2f2f7;
+    --surface: #ffffff;
+    --line: #e9e9f2;
+    --ink: #232438;
+    --muted: #8d8fa8;
+    --green: #1f9d5b;
+    --green-bg: #e4f4ec;
+    --red: #e04545;
+    --red-bg: #fcebeb;
+}

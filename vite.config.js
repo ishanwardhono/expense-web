@@ -16,7 +16,10 @@ export default defineConfig({
     assetsDir: 'assets',
     rollupOptions: {
       input: {
-        main: './index.html'
+        main: './index.html',
+        // v2 "Amplop" shell — built alongside the live app until the Phase 3
+        // cutover swaps index.html over to it.
+        v2: './v2.html'
       }
     }
   },
