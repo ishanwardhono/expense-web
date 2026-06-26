@@ -346,8 +346,44 @@ endpoint) instead of the hard-coded `CFG`. Required for §5.2.
   `VITE_API_BASE_URL` to it, replace `index.html`/tabs with the v2 app behind the
   same Firebase host. Deferred (separate, riskier step; backend is local-only).
 
-**Phase 4 — Subscriptions management**
-- CRUD for the subscription catalog; due-date display; derived paid status.
+**Phase 4 — Settings: budget config + subscriptions management**
+
+Scope expanded (this session): Phase 4 now covers **both** effective-dated config
+resources — budget config **and** the subscription catalog — because they are the
+same config-CRUD shape on the backend (a new version effective from the current
+month; past months frozen). They live together on **one hidden settings page**.
+
+- **Single "Pengaturan" page, URL-only access.** Implemented as a separate Vite
+  entry **`settings.html`** (matching the existing `index.html` / `v2.html`
+  multi-entry pattern — no router, no Firebase rewrite changes). **No entry-point
+  button from the landing page**; reachable only by typing the URL
+  (`/settings.html`). The page itself has a small "← Kembali" link back to the
+  app. Document the URL in the README (it has no discoverable entry).
+- **Budget config section** — `GET /budget` to load, `PUT /budget`
+  `{ monthly, shop_weekly, weekend_budget }` to save. Removes the last hard-coded
+  budget assumptions from the client.
+- **Subscriptions section — full catalog CRUD** (the *config half* of a
+  subscription: `{ name, color, alloc, due_day, active }`):
+  - list (`GET /subscriptions?year=&month=`), create (`POST /subscriptions`),
+    edit (`PUT /subscriptions/{id}` — name/color are identity, alloc/due_day
+    version effective from the current month), delete (`DELETE` = soft-end from
+    the current month; past months still show it).
+  - due-date display ("jatuh tempo tgl N"); once subscriptions exist the
+    Langganan envelope budget stops being `0`.
+- **Subscription *payment* stays a transaction, not config.** Paying = adding a
+  `Langganan` expense linked to the subscription (`subscription_id`), at most once
+  per `(subscription, calendar month)` → `409` if duplicate. So this phase also
+  adds the **`Langganan` add-expense path with a subscription picker** (and/or a
+  "Bayar" affordance on an unpaid subscription that opens that form pre-filled),
+  disabling already-paid subscriptions. Un-pay = delete that expense. "Paid"
+  status remains **derived server-side** (the client only renders it); the v2
+  Amplop Langganan envelope detail stays read-only/informational.
+- **Effective-dating messaging.** The settings UI must make clear that budget /
+  alloc / due_day edits apply **from the current month** (past months are frozen),
+  so a frozen past month doesn't read as a bug.
+- **Security note:** URL-only is *obscurity, not a boundary* — the app has no auth
+  (single-user, `CORS:*`), so the settings page is as unauthenticated as every
+  other call. Consistent with the existing model; no new auth in this phase.
 
 **Phase 5 — AI scan import (independent)**
 - Backend OCR + per-app parsers (GoPay, Livin', …); replace mocked
