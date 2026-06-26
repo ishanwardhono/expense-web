@@ -1,29 +1,28 @@
-// Month calendar grid (Monday-start). Each day cell shows the date and the
-// total spent that day; weekends tinted, today highlighted.
-// Ported from amplop-components.jsx (AmplopCell + AmplopCalendar).
+// Month calendar grid (Monday-start). Layout comes from monthGrid(y,m); each
+// day's data (spent / is_today / is_weekend) comes from the server `calendar`.
 
-import { keyToDate, isWeekendKey, monthGrid, DOWS_HEAD } from '../lib/dates.js'
+import { monthGrid, DOWS_HEAD } from '../lib/dates.js'
 import { fmtK } from '../lib/format.js'
-import { todayKey } from '../lib/today.js'
 
-function AmplopCell({ k, spent, cellH, onTap }) {
-  const day = keyToDate(k).getDate()
-  const isToday = k === todayKey()
+function AmplopCell({ cell, cellH, onTap }) {
+  const day = Number(cell.date.slice(8, 10))
   let cls = 'cell'
-  if (isWeekendKey(k)) cls += ' wknd'
-  if (isToday) cls += ' today'
+  if (cell.is_weekend) cls += ' wknd'
+  if (cell.is_today) cls += ' today'
   return (
     <button className={cls} style={{ height: cellH }} onClick={onTap}>
       <span className="dnum">{day}</span>
       <span className="cellstack">
-        {spent > 0 ? <span className="spent">{fmtK(spent)}</span> : null}
+        {cell.spent > 0 ? <span className="spent">{fmtK(cell.spent)}</span> : null}
       </span>
     </button>
   )
 }
 
-export function AmplopCalendar({ y, m, spentOf, cellH, onDayTap }) {
+export function AmplopCalendar({ y, m, calendar, cellH, onDayTap }) {
   const weeks = monthGrid(y, m)
+  const byDate = {}
+  calendar.forEach((c) => { byDate[c.date] = c })
   return (
     <div className="card cal-card">
       <div className="cal-head">
@@ -34,11 +33,9 @@ export function AmplopCalendar({ y, m, spentOf, cellH, onDayTap }) {
       {weeks.map((week, wi) => (
         <div className="cal-row" key={wi}>
           {week.map((k, ci) => {
-            if (!k) return <div className="cell empty" style={{ height: cellH }} key={'x' + ci}></div>
-            return (
-              <AmplopCell key={k} k={k} spent={spentOf(k)} cellH={cellH}
-                onTap={() => onDayTap(k)} />
-            )
+            const cell = k && byDate[k]
+            if (!cell) return <div className="cell empty" style={{ height: cellH }} key={'x' + ci}></div>
+            return <AmplopCell key={k} cell={cell} cellH={cellH} onTap={() => onDayTap(k)} />
           })}
         </div>
       ))}

@@ -22,28 +22,6 @@ export function isWeekendKey(k) {
   return dow === 0 || dow === 6
 }
 
-/** 'YYYY-MM' prefix for a year + zero-based month. */
-export function monthPrefixOf(y, m) { return y + '-' + pad2(m + 1) }
-
-/**
- * Inclusive date-key window covering a month plus padding on each side. The
- * envelope engine's shopping weeks (Mon–Sun) and weekends (Sat–Sun) can spill
- * a few days into the adjacent months, so `GET month` must return this padded
- * window — not just date-string matches — or boundary spend is lost. 7 days
- * each side is provably enough (a first Friday on the 1st has its Monday on the
- * prev month's 27th; a last Saturday on the 31st has its Sunday on the 1st).
- */
-export function monthWindow(y, m, padDays = 7) {
-  const start = new Date(y, m, 1)
-  start.setDate(start.getDate() - padDays)
-  const end = new Date(y, m + 1, 0)
-  end.setDate(end.getDate() + padDays)
-  return {
-    fromKey: dateKey(start.getFullYear(), start.getMonth(), start.getDate()),
-    toKey: dateKey(end.getFullYear(), end.getMonth(), end.getDate()),
-  }
-}
-
 // Month grid, one row per week, Monday-start. null = empty cell.
 export function monthGrid(y, m) {
   const lead = (new Date(y, m, 1).getDay() + 6) % 7

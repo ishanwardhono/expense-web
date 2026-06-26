@@ -1,58 +1,94 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { getMonth, addExpense, updateExpense, deleteExpense, setSubPayment, _resetLocal, USE_MOCK } from './api.js'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-// These exercise the mock adapter (no real endpoints configured in tests).
-beforeEach(() => { _resetLocal() })
+// api.js reads BASE from import.meta.env at import time, so each test stubs env
+// + global.fetch, then imports fresh.
+beforeEach(() => {
+  vi.resetModules()
+  vi.stubEnv('VITE_API_BASE_URL', 'http://test.local')
+})
+afterEach(() => { vi.unstubAllEnvs(); vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
-describe('api mock adapter', () => {
-  it('runs in mock mode when no endpoint URL is configured', () => {
-    expect(USE_MOCK).toBe(true)
+function jsonRes(body, status = 200) {
+  return { ok: status >= 200 && status < 300, status, json: async () => body }
+}
+
+const MINI_DASH = { period: { year: 2026, month: 6 }, stats: {}, days: {} }
+
+describe('api client', () => {
+  it('getMonth requests the dashboard with 1-based month and returns it', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonRes(MINI_DASH))
+    vi.stubGlobal('fetch', fetchMock)
+    const api = await import('./api.js')
+
+    const d = await api.getMonth(2026, 6)
+    expect(d).toEqual(MINI_DASH)
+    expect(fetchMock).toHaveBeenCalledWith('http://test.local/month?year=2026&month=6', expect.any(Object))
   })
 
-  it('getMonth returns expenses, subs, and the budget config', async () => {
-    const d = await getMonth(2026, 5)
-    expect(d.config).toEqual({ monthly: 5000000, shopWeekly: 600000, weekendBudget: 200000 })
-    expect(d.subs.length).toBe(4)
-    expect(d.expenses.length).toBeGreaterThan(0)
-    // Seed is June 2026 — all within the June window.
-    expect(d.expenses.every((e) => e.date.startsWith('2026-06'))).toBe(true)
+  it('addExpense POSTs the body to /expenses', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonRes({ id: 'new' }, 201))
+    vi.stubGlobal('fetch', fetchMock)
+    const api = await import('./api.js')
+
+    const body = { date: '2026-06-23', time: '12:10', amount: 18000, category: 'Makan', subscription_id: null, note: 'x' }
+    const created = await api.addExpense(body)
+    expect(created).toEqual({ id: 'new' })
+    const [url, opts] = fetchMock.mock.calls[0]
+    expect(url).toBe('http://test.local/expenses')
+    expect(opts.method).toBe('POST')
+    expect(JSON.parse(opts.body)).toEqual(body)
   })
 
-  it('returns the PADDED window so boundary days appear in the adjacent month', async () => {
-    // A Monday whose shopping week (Mon 06-29 .. Sun 07-05) belongs to July.
-    await addExpense({ date: '2026-06-29', time: '10:00', amount: 100000, cat: 'Belanja', note: 'x' })
-    const july = await getMonth(2026, 6)
-    expect(july.expenses.some((e) => e.date === '2026-06-29')).toBe(true)
+  it('updateExpense PUTs to /expenses/{id}', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonRes({ id: 'abc' }))
+    vi.stubGlobal('fetch', fetchMock)
+    const api = await import('./api.js')
+
+    await api.updateExpense('abc', { amount: 99 })
+    const [url, opts] = fetchMock.mock.calls[0]
+    expect(url).toBe('http://test.local/expenses/abc')
+    expect(opts.method).toBe('PUT')
   })
 
-  it('addExpense assigns an id and persists', async () => {
-    const created = await addExpense({ date: '2026-06-20', time: '12:00', amount: 12345, cat: 'Makan', note: '' })
-    expect(created.id).toBeTruthy()
-    const d = await getMonth(2026, 5)
-    expect(d.expenses.find((e) => e.id === created.id).amount).toBe(12345)
+  it('deleteExpense DELETEs and returns null on 204', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 204, json: async () => { throw new Error('no body') } })
+    vi.stubGlobal('fetch', fetchMock)
+    const api = await import('./api.js')
+
+    const res = await api.deleteExpense('abc')
+    expect(res).toBeNull()
+    expect(fetchMock.mock.calls[0][1].method).toBe('DELETE')
   })
 
-  it('updateExpense edits in place', async () => {
-    const created = await addExpense({ date: '2026-06-20', time: '12:00', amount: 100, cat: 'Makan', note: '' })
-    await updateExpense({ ...created, amount: 999 })
-    const d = await getMonth(2026, 5)
-    expect(d.expenses.find((e) => e.id === created.id).amount).toBe(999)
+  it('surfaces the server {error} message on a non-2xx response', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonRes({ error: 'subscription already paid this month' }, 409))
+    vi.stubGlobal('fetch', fetchMock)
+    const api = await import('./api.js')
+
+    await expect(api.addExpense({})).rejects.toThrow('subscription already paid this month')
   })
 
-  it('deleteExpense removes the row', async () => {
-    const created = await addExpense({ date: '2026-06-20', time: '12:00', amount: 100, cat: 'Makan', note: '' })
-    await deleteExpense(created.id)
-    const d = await getMonth(2026, 5)
-    expect(d.expenses.find((e) => e.id === created.id)).toBeUndefined()
+  it('maps a network failure to a friendly Indonesian error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Failed to fetch')))
+    const api = await import('./api.js')
+    await expect(api.getMonth(2026, 6)).rejects.toThrow('Tidak dapat terhubung ke server.')
   })
 
-  it('setSubPayment sets and clears a subscription payment', async () => {
-    await setSubPayment('s3', { date: '2026-06-18', amount: 59000 })
-    let d = await getMonth(2026, 5)
-    expect(d.subs.find((s) => s.id === 's3').paid).toEqual({ date: '2026-06-18', amount: 59000 })
+  it('falls back to the cached dashboard (flagged _stale) when a fetch fails', async () => {
+    const mem = new Map()
+    vi.stubGlobal('localStorage', {
+      getItem: (k) => (mem.has(k) ? mem.get(k) : null),
+      setItem: (k, v) => mem.set(k, v),
+    })
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonRes(MINI_DASH))
+      .mockRejectedValueOnce(new Error('Failed to fetch'))
+    vi.stubGlobal('fetch', fetchMock)
+    const api = await import('./api.js')
 
-    await setSubPayment('s3', null)
-    d = await getMonth(2026, 5)
-    expect(d.subs.find((s) => s.id === 's3').paid).toBeNull()
+    await api.getMonth(2026, 6)               // success → caches
+    const stale = await api.getMonth(2026, 6) // failure → cached copy
+    expect(stale._stale).toBe(true)
+    expect(stale.period).toEqual(MINI_DASH.period)
   })
 })
