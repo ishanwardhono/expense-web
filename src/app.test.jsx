@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, cleanup, fireEvent } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react'
 
 // The app renders the server dashboard, so we mock the API client.
 vi.mock('./data/api.js', () => ({
@@ -14,7 +14,7 @@ import { App } from './app.jsx'
 import { setNow } from './lib/today.js'
 import * as api from './data/api.js'
 
-function makeDash(dayRows) {
+function makeDash(dayRows, subscriptions = []) {
   const days = {}
   dayRows.forEach((r) => { (days[r.date] = days[r.date] || []).push(r) })
   return {
@@ -31,7 +31,7 @@ function makeDash(dayRows) {
     flex: { budget: 1800000, spent: 0, left: 1800000 },
     calendar: [{ date: '2026-06-23', dow: 2, is_weekend: false, is_today: false, spent: 18000 }],
     days,
-    subscriptions: [],
+    subscriptions,
   }
 }
 
@@ -93,5 +93,41 @@ describe('App — renders the server dashboard', () => {
     expect(await screen.findByText(/2 transaksi/)).toBeTruthy()
     const body = api.addExpense.mock.calls[0][0]
     expect(body).toMatchObject({ amount: 50000, category: 'Makan', subscription_id: null })
+  })
+
+  it('pays a subscription via the Langganan category + picker', async () => {
+    api.getMonth.mockResolvedValue(makeDash([], [
+      { id: 's1', name: 'Netflix', color: '#c8403c', alloc: 187000, due_day: 5, paid: null, status: 'unpaid' },
+    ]))
+
+    render(<App />)
+    await screen.findByText('Terpakai')
+    fireEvent.click(screen.getByLabelText('Tambah pengeluaran hari ini'))
+    fireEvent.click(screen.getByText('Input manual'))
+    fireEvent.click(screen.getByText('Langganan'))
+    fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '186000' } })
+    fireEvent.change(screen.getByLabelText('Langganan'), { target: { value: 's1' } })
+    fireEvent.click(screen.getByText('Simpan'))
+
+    await waitFor(() => expect(api.addExpense).toHaveBeenCalled())
+    expect(api.addExpense.mock.calls[0][0]).toMatchObject({ amount: 186000, category: 'Langganan', subscription_id: 's1' })
+  })
+
+  it('blocks a Langganan payment when no subscription is chosen', async () => {
+    api.getMonth.mockResolvedValue(makeDash([], [
+      { id: 's1', name: 'Netflix', color: '#c8403c', alloc: 187000, due_day: 5, paid: null, status: 'unpaid' },
+    ]))
+
+    render(<App />)
+    await screen.findByText('Terpakai')
+    fireEvent.click(screen.getByLabelText('Tambah pengeluaran hari ini'))
+    fireEvent.click(screen.getByText('Input manual'))
+    fireEvent.click(screen.getByText('Langganan'))
+    fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '186000' } })
+    // intentionally leave the subscription picker on "Pilih langganan…"
+    fireEvent.click(screen.getByText('Simpan'))
+
+    expect(screen.getByText(/Pilih langganan yang dibayar/)).toBeTruthy()
+    expect(api.addExpense).not.toHaveBeenCalled()
   })
 })

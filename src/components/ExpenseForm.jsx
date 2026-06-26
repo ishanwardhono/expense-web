@@ -8,9 +8,13 @@ import { CATS } from '../lib/categories.js'
 import { pad2 } from '../lib/dates.js'
 import { fmtDateLong, hhmm } from '../lib/format.js'
 
-export function ExpenseForm({ initial, dateK, catColor, onSave, onDelete, onClose, onScan }) {
+// `subs` is the month's resolved subscription set (from the dashboard); a
+// Langganan expense pays one of them. Already-paid subs are disabled (the
+// backend allows at most one payment per subscription per calendar month).
+export function ExpenseForm({ initial, dateK, catColor, onSave, onDelete, onClose, onScan, subs = [] }) {
   const [amount, setAmount] = useState(initial ? String(initial.amount) : '')
   const [cat, setCat] = useState(initial ? initial.category : 'Makan')
+  const [subId, setSubId] = useState(initial && initial.subscription_id ? initial.subscription_id : '')
   const [note, setNote] = useState(initial && initial.note ? initial.note : '')
   const [time, setTime] = useState(() => {
     if (initial && initial.occurred_at) return hhmm(initial.occurred_at) || '00:00'
@@ -19,12 +23,15 @@ export function ExpenseForm({ initial, dateK, catColor, onSave, onDelete, onClos
   })
   const [err, setErr] = useState('')
 
+  const chips = CATS.concat(['Langganan'])
+
   function submit() {
     const a = parseInt(amount, 10)
     if (!a || a <= 0) { setErr('Masukkan jumlah yang valid'); return }
     if (!time) { setErr('Waktu wajib diisi'); return }
-    // Server body shape; subscription_id stays null (Langganan flow is Phase 4).
-    onSave({ date: dateK, time, amount: a, category: cat, subscription_id: null, note: note.trim() })
+    const sid = cat === 'Langganan' ? subId : null
+    if (cat === 'Langganan' && !sid) { setErr('Pilih langganan yang dibayar'); return }
+    onSave({ date: dateK, time, amount: a, category: cat, subscription_id: sid, note: note.trim() })
   }
 
   return (
@@ -53,18 +60,35 @@ export function ExpenseForm({ initial, dateK, catColor, onSave, onDelete, onClos
       </div>
       <label className="f-label">Kategori</label>
       <div className="cat-chips">
-        {CATS.map((c) => {
+        {chips.map((c) => {
           const on = c === cat
           return (
             <button key={c} className={'chip' + (on ? ' on' : '')}
               style={on ? { background: catColor(c) } : null}
-              onClick={() => setCat(c)}>
+              onClick={() => { setCat(c); setErr('') }}>
               <span className="dot" style={{ background: on ? 'rgba(255,255,255,.85)' : catColor(c) }}></span>
               {c}
             </button>
           )
         })}
       </div>
+      {cat === 'Langganan' ? (
+        <>
+          <label className="f-label">Langganan</label>
+          {subs.length === 0 ? (
+            <div className="form-err">Belum ada langganan. Tambahkan di halaman Pengaturan dulu.</div>
+          ) : (
+            <select className="f-in" aria-label="Langganan" value={subId}
+              onChange={(e) => { setSubId(e.target.value); setErr('') }}>
+              <option value="">Pilih langganan…</option>
+              {subs.map((s) => {
+                const paid = s.status === 'paid' && s.id !== (initial && initial.subscription_id)
+                return <option key={s.id} value={s.id} disabled={paid}>{s.name}{paid ? ' (sudah dibayar)' : ''}</option>
+              })}
+            </select>
+          )}
+        </>
+      ) : null}
       <div className="form-row">
         <div className="form-col">
           <label className="f-label">Waktu</label>

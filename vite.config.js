@@ -19,7 +19,10 @@ export default defineConfig({
         main: './index.html',
         // v2 "Amplop" shell — built alongside the live app until the Phase 3
         // cutover swaps index.html over to it.
-        v2: './v2.html'
+        v2: './v2.html',
+        // Hidden settings page (budget + subscriptions); URL-only, no link from
+        // the app. Reachable at /settings.html.
+        settings: './settings.html'
       }
     }
   },

@@ -91,4 +91,40 @@ describe('api client', () => {
     expect(stale._stale).toBe(true)
     expect(stale.period).toEqual(MINI_DASH.period)
   })
+
+  it('getBudget / putBudget hit /budget', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonRes({ monthly: 5000000, shop_weekly: 600000, weekend_budget: 200000 }))
+    vi.stubGlobal('fetch', fetchMock)
+    const api = await import('./api.js')
+
+    await api.getBudget(2026, 6)
+    expect(fetchMock).toHaveBeenCalledWith('http://test.local/budget?year=2026&month=6', expect.any(Object))
+
+    await api.putBudget({ monthly: 5500000, shop_weekly: 650000, weekend_budget: 200000 })
+    const [url, opts] = fetchMock.mock.calls[1]
+    expect(url).toBe('http://test.local/budget')
+    expect(opts.method).toBe('PUT')
+    expect(JSON.parse(opts.body)).toMatchObject({ monthly: 5500000 })
+  })
+
+  it('subscription CRUD hits /subscriptions', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonRes({ id: 's1' }))
+    vi.stubGlobal('fetch', fetchMock)
+    const api = await import('./api.js')
+
+    await api.getSubscriptions(2026, 6)
+    expect(fetchMock.mock.calls[0][0]).toBe('http://test.local/subscriptions?year=2026&month=6')
+
+    await api.createSubscription({ name: 'Netflix', color: '#c8403c', alloc: 187000, due_day: 5 })
+    expect(fetchMock.mock.calls[1][0]).toBe('http://test.local/subscriptions')
+    expect(fetchMock.mock.calls[1][1].method).toBe('POST')
+
+    await api.updateSubscription('s1', { alloc: 200000 })
+    expect(fetchMock.mock.calls[2][0]).toBe('http://test.local/subscriptions/s1')
+    expect(fetchMock.mock.calls[2][1].method).toBe('PUT')
+
+    await api.deleteSubscription('s1')
+    expect(fetchMock.mock.calls[3][0]).toBe('http://test.local/subscriptions/s1')
+    expect(fetchMock.mock.calls[3][1].method).toBe('DELETE')
+  })
 })
