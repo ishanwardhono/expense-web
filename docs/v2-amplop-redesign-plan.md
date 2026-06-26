@@ -346,7 +346,7 @@ endpoint) instead of the hard-coded `CFG`. Required for §5.2.
   `VITE_API_BASE_URL` to it, replace `index.html`/tabs with the v2 app behind the
   same Firebase host. Deferred (separate, riskier step; backend is local-only).
 
-**Phase 4 — Settings: budget config + subscriptions management**
+**Phase 4 — Settings: budget config + subscriptions management** ✅ *(done — PR #14)*
 
 Scope expanded (this session): Phase 4 now covers **both** effective-dated config
 resources — budget config **and** the subscription catalog — because they are the
