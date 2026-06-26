@@ -44,6 +44,15 @@ describe('Settings page', () => {
     expect(api.putBudget.mock.calls[0][0]).toMatchObject({ monthly: 5500000, shop_weekly: 600000, weekend_budget: 200000 })
   })
 
+  it('rejects an invalid budget (negative) and does not call putBudget', async () => {
+    render(<Settings />)
+    await screen.findByText('Budget')
+    fireEvent.change(screen.getByLabelText('Budget bulanan'), { target: { value: '-5' } })
+    fireEvent.click(screen.getByText('Simpan budget'))
+    expect(screen.getByText(/Nilai harus angka/)).toBeTruthy()
+    expect(api.putBudget).not.toHaveBeenCalled()
+  })
+
   it('creates a subscription', async () => {
     render(<Settings />)
     await screen.findByText('Langganan')
