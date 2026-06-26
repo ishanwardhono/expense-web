@@ -334,10 +334,17 @@ endpoint) instead of the hard-coded `CFG`. Required for §5.2.
 - Known follow-up (nit): in real mode, a successful write then a failed reload
   shows cached data without the just-written row — revisit when the backend lands.
 
-**Phase 3 — Data migration + cutover**
-- Apply the category mapping to existing records (or read-time map).
-- QA envelope math against known months; verify month-boundary (Friday/Saturday)
-  rules. Replace the old `index.html`/tabs; ship behind the same Firebase host.
+**Phase 3 — Real-backend wiring + cutover** *(wiring done — PR #12; cutover pending)*
+- [x] Wire the v2 client to the real `expense-functions` backend. **Note:** the
+  backend resolved §5.2/§12 #2 *server-side* — it returns a render-ready month
+  dashboard, so the client engine was removed and the client is now a thin
+  renderer. Verified live (create/read/update/delete) against localhost:8080.
+- [x] §7.2 category migration is **moot** — the backend is greenfield (no legacy
+  records). Engine math + month-boundary rules are now the backend's
+  responsibility and tested there.
+- [ ] **Production cutover** — deploy the backend (Cloud Function), set
+  `VITE_API_BASE_URL` to it, replace `index.html`/tabs with the v2 app behind the
+  same Firebase host. Deferred (separate, riskier step; backend is local-only).
 
 **Phase 4 — Subscriptions management**
 - CRUD for the subscription catalog; due-date display; derived paid status.
