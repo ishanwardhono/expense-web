@@ -111,12 +111,8 @@ export function App() {
     setSheet((sh) => (sh && sh.from === 'day' ? { type: 'day', k: sh.k } : null))
   }
   function openExpense(e, from, k) {
-    // Langganan payments are managed via the subscription flow (Phase 4); their
-    // rows are read-only here.
-    if (e.category === 'Langganan' || e.subscription_id) {
-      setNotice('Pembayaran langganan dikelola di fase berikutnya.')
-      return
-    }
+    // All expenses (incl. Langganan payments) open in the form for edit/delete;
+    // deleting a Langganan expense is how you "un-pay" a subscription.
     setSheet({ type: 'form', k: e.date, exp: e, from })
   }
 
@@ -189,6 +185,7 @@ export function App() {
 
       {sheet && sheet.type === 'form' ? (
         <ExpenseForm initial={sheet.exp} dateK={sheet.k} catColor={catColor}
+          subs={dash ? (dash.subscriptions || []) : []}
           onSave={(body) => saveExpense(sheet.exp, body)}
           onDelete={deleteExpense} onClose={closeForm} />
       ) : null}

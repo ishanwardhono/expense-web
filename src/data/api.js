@@ -94,3 +94,25 @@ export async function updateExpense(id, body) {
 export async function deleteExpense(id) {
   try { return await sendJSON(BASE + '/expenses/' + encodeURIComponent(id), 'DELETE') } catch (err) { throw friendly(err) }
 }
+
+// ---------- budget config (effective-dated; PUT applies from current month) ----------
+export async function getBudget(year, month) {
+  try { return await getJSON(BASE + '/budget?year=' + year + '&month=' + month) } catch (err) { throw friendly(err) }
+}
+export async function putBudget(body) {
+  try { return await sendJSON(BASE + '/budget', 'PUT', body) } catch (err) { throw friendly(err) }
+}
+
+// ---------- subscription catalog (definitions; paid status lives in /month) ----------
+export async function getSubscriptions(year, month) {
+  try { return await getJSON(BASE + '/subscriptions?year=' + year + '&month=' + month) } catch (err) { throw friendly(err) }
+}
+export async function createSubscription(body) {
+  try { return await sendJSON(BASE + '/subscriptions', 'POST', body) } catch (err) { throw friendly(err) }
+}
+export async function updateSubscription(id, body) {
+  try { return await sendJSON(BASE + '/subscriptions/' + encodeURIComponent(id), 'PUT', body) } catch (err) { throw friendly(err) }
+}
+export async function deleteSubscription(id) {
+  try { return await sendJSON(BASE + '/subscriptions/' + encodeURIComponent(id), 'DELETE') } catch (err) { throw friendly(err) }
+}
