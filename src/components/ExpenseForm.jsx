@@ -6,14 +6,14 @@ import { useState } from 'react'
 import { Sheet } from './Sheet.jsx'
 import { CATS } from '../lib/categories.js'
 import { pad2 } from '../lib/dates.js'
-import { fmtDateLong } from '../lib/format.js'
+import { fmtDateLong, hhmm } from '../lib/format.js'
 
 export function ExpenseForm({ initial, dateK, catColor, onSave, onDelete, onClose, onScan }) {
   const [amount, setAmount] = useState(initial ? String(initial.amount) : '')
-  const [cat, setCat] = useState(initial ? initial.cat : 'Makan')
+  const [cat, setCat] = useState(initial ? initial.category : 'Makan')
   const [note, setNote] = useState(initial && initial.note ? initial.note : '')
   const [time, setTime] = useState(() => {
-    if (initial && initial.time) return initial.time
+    if (initial && initial.occurred_at) return hhmm(initial.occurred_at) || '00:00'
     const now = new Date()
     return pad2(now.getHours()) + ':' + pad2(now.getMinutes())
   })
@@ -23,7 +23,8 @@ export function ExpenseForm({ initial, dateK, catColor, onSave, onDelete, onClos
     const a = parseInt(amount, 10)
     if (!a || a <= 0) { setErr('Masukkan jumlah yang valid'); return }
     if (!time) { setErr('Waktu wajib diisi'); return }
-    onSave({ id: initial ? initial.id : null, date: dateK, time, amount: a, cat, note: note.trim() })
+    // Server body shape; subscription_id stays null (Langganan flow is Phase 4).
+    onSave({ date: dateK, time, amount: a, category: cat, subscription_id: null, note: note.trim() })
   }
 
   return (

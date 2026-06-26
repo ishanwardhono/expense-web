@@ -1,20 +1,20 @@
-// Collapsible "Riwayat Pengeluaran" with category filter chips and expenses
-// grouped by day. Ported from expense-components.jsx (ListSection).
+// Collapsible "Riwayat Pengeluaran": category filter chips + expenses grouped
+// by day. Driven by the dashboard `days` map (date -> expense rows).
 
 import { useState } from 'react'
 import { ExpRow } from './ExpRow.jsx'
 import { CATS } from '../lib/categories.js'
 import { fmtRp, fmtDateLong } from '../lib/format.js'
 
-export function ListSection({ byDay, filter, setFilter, catColor, onRowTap, cats, tagOf, tagStyle }) {
+export function ListSection({ days, filter, setFilter, catColor, onRowTap, cats, tagStyle }) {
   const [open, setOpen] = useState(false)
   const allCats = cats || CATS
-  const days = Object.keys(byDay).sort().reverse()
-  const groups = days.map((k) => {
-    const list = byDay[k].filter((e) => filter === 'Semua' || e.cat === filter)
+  const dayKeys = Object.keys(days).sort().reverse()
+  const groups = dayKeys.map((k) => {
+    const list = days[k].filter((e) => filter === 'Semua' || e.category === filter)
     return { k, list }
   }).filter((g) => g.list.length > 0)
-  const txCount = days.reduce((s, k) => s + byDay[k].length, 0)
+  const txCount = dayKeys.reduce((s, k) => s + days[k].length, 0)
 
   return (
     <div className="list-section">
@@ -52,8 +52,8 @@ export function ListSection({ byDay, filter, setFilter, catColor, onRowTap, cats
                     <span>{fmtDateLong(g.k)}</span>
                     <span className="total">{fmtRp(total)}</span>
                   </div>
-                  {g.list.slice().reverse().map((e) => (
-                    <ExpRow key={e.id} e={e} catColor={catColor} tag={tagOf ? tagOf(e) : null} tagStyle={tagStyle} onClick={() => onRowTap(e)} />
+                  {g.list.map((e) => (
+                    <ExpRow key={e.id} e={e} catColor={catColor} tagStyle={tagStyle} onClick={() => onRowTap(e)} />
                   ))}
                 </div>
               )

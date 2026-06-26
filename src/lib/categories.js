@@ -1,14 +1,16 @@
-// Categories and category/envelope colour + tag mapping for the v2 UI.
+// Category + envelope colour mapping for the v2 UI.
 //
-// Note (deliberate divergence from plan doc §7.2): the manual categories are
-// exactly the prototype's set — there is NO manual "Langganan" category.
-// Subscription payments surface as a synthetic row tagged "Langganan"; see
-// data/store.js. Ported from amplop-app.jsx.
+// The manual expense categories are the prototype's five; "Langganan" is a
+// payment category carried by the backend (an expense with a subscription_id)
+// — it isn't offered as a manual chip in this phase. Envelope tagging now comes
+// from the server (each expense ships an `envelope: {id, label}`), so the client
+// only maps ids/categories to colours.
 
-import { CFG, FLEX_COLOR } from './config.js'
-import { amplopOf } from './amplop-engine.js'
+import { CFG } from './config.js'
 
 export const CATS = ['Makan', 'Belanja', 'Jajan', 'Cash', 'Lainnya']
+
+const FLEX_COLOR = '#e0962a' // amber — distinct from the Belanja Mingguan blue
 
 /** Colour for an expense category chip/dot. */
 export function catColor(cat) {
@@ -23,13 +25,4 @@ export function envColor(id) {
   if (id === 'weekend') return '#d6569b'
   if (id === 'langganan') return '#8a8da6'
   return FLEX_COLOR
-}
-
-const AMP_LABELS = { belanja: 'BLNJ', weekend: 'WKND', fleksibel: 'FLEX', langganan: 'SUBS' }
-const AMP_FULL = { belanja: 'Belanja Mingguan', weekend: 'Akhir Pekan', fleksibel: 'Fleksibel', langganan: 'Langganan' }
-
-/** Envelope tag (label/full/color) for an expense or synthetic subscription row. */
-export function tagOf(e) {
-  const id = e.sub ? 'langganan' : amplopOf(e)
-  return { label: AMP_LABELS[id], full: AMP_FULL[id], color: envColor(id) }
 }

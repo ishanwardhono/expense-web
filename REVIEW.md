@@ -1,13 +1,15 @@
-# Review — PR #11: Phase 2 v2 Amplop data-API seam
+# Review — PR #12: Phase 3 wire v2 Amplop client to the real backend
 
-First review. Scope: introduce a data-API seam (`src/data/api.js`) so the v2
-shell loads/saves via endpoints with localStorage as an offline cache, plus
-loading/error/retry/notice states. Reviewed at HEAD 2913f6a.
+First review (fresh, supersedes the PR #11 record). Scope: re-point the v2
+"Amplop" client at the real `expense-functions` backend (localhost:8080), which
+computes all envelope/budget math server-side and returns a render-ready month
+dashboard. Client is now a thin renderer. Phase-2 mock/seed/store/engine were
+intentionally removed. Reviewed at HEAD 1eda60e.
 
-Ratified decisions honored as not-bugs: in-repo mock adapter selected by env
-flag (USE_MOCK = no VITE_GET_MONTH_URL); GET month returns server budget config;
-persist expenses + subscription payment only (full sub CRUD is Phase 4); auth
-public per §13; v2 mounts via v2.html (index.html untouched).
+Ratified decisions honored as not-bugs: wire+verify only (v2.html, index.html
+cutover deferred); localhost default base URL baked into the v2 bundle is
+expected; in-repo mock/seed/store/engine/PaySheet/monthWindow/CFG-budget removed;
+Langganan rows read-only (subscription mgmt + Langganan add is Phase 4).
 
 ## Blocking
 
@@ -15,47 +17,56 @@ _None._
 
 ## Resolved
 
-_None (first review, no prior blocking issues)._
+_None (first review of this PR; prior PR #11 record superseded)._
 
 ## Non-blocking (nits)
 
-- nit: `src/data/api.js:163` (real `addExpense`) returns the created expense but
-  does not write it into the local `_db` cache. The subsequent `reload()` in
-  `app.jsx:67` re-fetches and re-caches, so the happy path is correct. But if
-  that reload fails after a successful server write, `getMonth` returns the
-  `_stale` cache, which lacks the just-added row — the write succeeded server-side
-  yet the UI silently omits it until the next good fetch. No data loss/corruption;
-  edge UX wrinkle for the not-yet-built real backend.
-- nit: `src/app.jsx:66-69` `reload()` discards a `_stale` flag on the post-write
-  fetch — the offline notice won't appear in that path. Cosmetic.
-- nit: `src/data/api.js:140` `cacheMonth` replaces `subs`/`config` wholesale from
-  each month fetch. Fine while subs/config are global, but if subs ever become
-  month-scoped this merge would need revisiting. Noted for awareness only.
+- nit: `src/app.jsx:52-54` `reload()` (post-write refetch) drops the `_stale`
+  flag, so if the server write succeeds but the immediate refetch fails the user
+  sees stale offline data without the offline notice. No data loss (write already
+  committed server-side); cosmetic, and carried over from Phase 2.
+- nit: `src/components/EnvelopeSheet.jsx:74,103-105` dereferences
+  `envById.langganan/belanja/weekend.budget` with no guard. The contract
+  guarantees all four envelopes so this is safe today; a malformed/partial
+  dashboard would throw inside the sheet (not on the main screen). Awareness only.
+- nit: `src/data/api.js:38-46` `friendly()` rewrites any error whose message
+  matches `/Failed to fetch|NetworkError/i`. A server `{error}` string containing
+  those words would be masked. Pathological; server messages are Indonesian.
 
 ## Verification
 
-- Padded ±7-day `monthWindow` proven sufficient by brute force over 2024–2030:
-  every engine shopping week (Mon=Fri-4 .. Sun=Fri+2) and weekend (Sat .. Sun+1)
-  falls inside the window — zero failures. Boundary spend is preserved.
-- `npm test` -> 38 passing (api mock 7, api real failure paths 3, format 12,
-  engine 12, app 4). Failure paths covered: cold network -> friendly Indonesian
-  error; stale offline fallback after a prior success; non-ok HTTP -> throw;
-  app write round-trip (28 -> 29 transaksi via API).
-- `npm run build` -> green; emits dist/v2.html + v2 bundle and an intact
-  dist/index.html. No live-app files touched (index.html, main.js, tabs/monthly/
-  recap/modal/details/style.css all unchanged) — focused diff.
-- No nil/zero read of `A`/`cfg` when `data` is null: every use is behind a
-  `data ?` gate or a `data &&` sheet guard. Loading/error/retry/notice wired;
-  write errors surface via `notice`.
-- Module-level `_db`/`_hasCache`/`_seq` cleared by `_resetLocal()` (called in
-  test `beforeEach`); real-adapter tests use `vi.resetModules()`. No cross-test
-  state leak; `_stale` only after an in-session success (intentional).
-- `friendly()` maps Timeout/Abort + "Failed to fetch" to Indonesian copy, else
-  preserves the Error. All fetches carry `AbortSignal.timeout(TIMEOUT)`.
-- CLAUDE.md: UI copy Indonesian; currency via shared `fmtK`; no secrets
-  (.env.example placeholders empty); conventional `feat:` commit.
+- Month indexing consistent: cursor stores 0-based `m`; every server call is
+  `api.getMonth(y, m+1)` (`app.jsx:40,53`); display uses `MONTHS_ID[m]`; grid
+  uses 0-based `monthGrid(y,m)` and `monthGrid`'s own `m+1` in `dateKey`;
+  `isCurrentMonth` prefers server `period.is_current`, falls back to local
+  compare only before load. api.test.js:25 + app.test.jsx:62 assert 1-based wire.
+- Field names match the contract: `occurred_at` (ExpRow/ExpenseForm via `hhmm`),
+  `envelope.{id,label}` (ExpRow tag), week/weekend `state` past|current|future
+  (EnvelopeSheet WeekRow), `due_day`/`paid.{date,amount}`/`alloc`
+  (EnvelopeSheet subs), `calendar[].{date,dow,is_weekend,is_today,spent}`
+  (AmplopCalendar), `stats.{spent,budget,remaining}`, `flex.{budget,spent,left}`,
+  `belanja_weeks[].{monday,friday,sunday,left}`, `weekends[].{saturday,sunday,
+  left}`. No mismatches found.
+- Data-null gating sound: no read of `dash.*` before load. `dayMinis`/`dayContext`
+  read `dash.*` unguarded but only run inside the `{dash && sheet.type==='day'}`
+  render branch (`app.jsx:175`). Calendar/list/envelope blocks all behind `dash ?`.
+- Write-then-reload flow correct: `runWrite` awaits the write, closes the sheet,
+  then `reload()`s; errors surface via `notice`. Langganan/`subscription_id` rows
+  are blocked from the edit form (`app.jsx:116-119`) and ExpenseForm always sends
+  `subscription_id: null` — consistent with Phase-3 manual categories only.
+- 204 handling: `sendJSON` returns null on 204 and tolerates an empty/throwing
+  json body (api.test.js:53-61). Server `{error}` passthrough on non-2xx proven
+  (api.test.js:63-69); network failure → friendly Indonesian (api.test.js:71-75);
+  `_stale` offline cache after a prior success, keyed per (year,month) so no
+  cross-month bleed (api.test.js:77-93).
+- Failure-path coverage present: api error + offline-cache + 204; app add
+  round-trip re-reads the month (1→2 transaksi) and asserts the POST body.
+- `npm test` → 24 passing; `npm run build` → green (emits dist/v2.html + v2
+  bundle, dist/index.html intact). Legacy production app (index.html, main.js,
+  tabs/monthly/recap/modal/details/style.css) untouched — focused diff.
+- CLAUDE.md: UI copy Indonesian; currency via shared `fmtK`/`fmtRp`; no secrets
+  (localhost base URL is a public dev default, not a credential); conventional
+  `feat:` commit; removed engine/mock cleanly with no dangling references.
 
 ## Blocking issues
 _None._
-
-VERDICT: READY_TO_MERGE

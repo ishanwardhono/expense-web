@@ -1,33 +1,72 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, cleanup, fireEvent } from '@testing-library/react'
+
+// The app renders the server dashboard, so we mock the API client.
+vi.mock('./data/api.js', () => ({
+  getMonth: vi.fn(),
+  addExpense: vi.fn(),
+  updateExpense: vi.fn(),
+  deleteExpense: vi.fn(),
+}))
+
 import { App } from './app.jsx'
 import { setNow } from './lib/today.js'
-import { _resetLocal } from './data/api.js'
+import * as api from './data/api.js'
 
-// Pin the clock to the seed month so the shell opens on data, deterministically.
+function makeDash(dayRows) {
+  const days = {}
+  dayRows.forEach((r) => { (days[r.date] = days[r.date] || []).push(r) })
+  return {
+    period: { year: 2026, month: 6, label: 'Juni 2026', is_current: true },
+    stats: { spent: 18000, budget: 5000000, remaining: 4982000 },
+    envelopes: [
+      { id: 'belanja', label: 'Belanja Mingguan', budget: 2400000, spent: 18000, left: 2382000, over: false },
+      { id: 'weekend', label: 'Akhir Pekan', budget: 800000, spent: 0, left: 800000, over: false },
+      { id: 'langganan', label: 'Langganan', budget: 0, spent: 0, left: 0, over: false },
+      { id: 'fleksibel', label: 'Fleksibel', budget: 1800000, spent: 0, left: 1800000, over: false },
+    ],
+    belanja_weeks: [{ range: '22–28 Jun', monday: '2026-06-22', friday: '2026-06-26', sunday: '2026-06-28', budget: 600000, spent: 18000, left: 582000, state: 'current' }],
+    weekends: [{ range: '27–28 Jun', saturday: '2026-06-27', sunday: '2026-06-28', budget: 200000, spent: 0, left: 200000, state: 'future' }],
+    flex: { budget: 1800000, spent: 0, left: 1800000 },
+    calendar: [{ date: '2026-06-23', dow: 2, is_weekend: false, is_today: false, spent: 18000 }],
+    days,
+    subscriptions: [],
+  }
+}
+
+const ROW = {
+  id: 'x1', date: '2026-06-23', occurred_at: '2026-06-23T12:10:00+07:00', amount: 18000,
+  category: 'Makan', subscription_id: null, note: 'Nasi padang', envelope: { id: 'belanja', label: 'BLNJ' },
+}
+
 beforeEach(() => {
   setNow(() => new Date(2026, 5, 25, 12, 0, 0))
-  if (typeof localStorage !== 'undefined') localStorage.clear()
-  _resetLocal()
+  api.getMonth.mockResolvedValue(makeDash([ROW]))
+  api.addExpense.mockResolvedValue({ id: 'x2' })
 })
-afterEach(() => { setNow(null); cleanup() })
+afterEach(() => { setNow(null); vi.clearAllMocks(); cleanup() })
 
-describe('App — v2 shell mounts and renders', () => {
-  it('renders the current month title and (after async load) the envelope summary', async () => {
+describe('App — renders the server dashboard', () => {
+  it('shows the month title and (after load) the envelope summary', async () => {
     render(<App />)
-    expect(screen.getByText('Juni 2026')).toBeTruthy() // topbar renders immediately
-    // Envelope card appears once the month data resolves from the API layer.
+    expect(screen.getByText('Juni 2026')).toBeTruthy()
     expect(await screen.findByText('Terpakai')).toBeTruthy()
     expect(screen.getByText('Budget')).toBeTruthy()
     expect(screen.getByText('Sisa')).toBeTruthy()
   })
 
-  it('opens the entry menu from the FAB with a manual option', () => {
+  it('requests the month as 1-based from the API', async () => {
     render(<App />)
+    await screen.findByText('Terpakai')
+    expect(api.getMonth).toHaveBeenCalledWith(2026, 6)
+  })
+
+  it('opens the FAB entry menu with a manual option', async () => {
+    render(<App />)
+    await screen.findByText('Terpakai')
     fireEvent.click(screen.getByLabelText('Tambah pengeluaran hari ini'))
     expect(screen.getByText('Input manual')).toBeTruthy()
-    // Import is present but stubbed (scan flow deferred to Phase 5).
     expect(screen.getByText('Impor dari images')).toBeTruthy()
   })
 
@@ -36,20 +75,23 @@ describe('App — v2 shell mounts and renders', () => {
     await screen.findByText('Terpakai')
     fireEvent.click(screen.getByLabelText('Bulan sebelumnya'))
     expect(screen.getByText('Mei 2026')).toBeTruthy()
-    expect(screen.getByText('Kembali ke hari ini')).toBeTruthy()
   })
 
-  it('adds an expense through the form and persists it (round-trip via the API)', async () => {
+  it('adds an expense through the form and reloads the month', async () => {
+    api.getMonth
+      .mockResolvedValueOnce(makeDash([ROW]))                              // initial: 1 transaksi
+      .mockResolvedValue(makeDash([ROW, { ...ROW, id: 'x2', note: 'b' }])) // after write: 2 transaksi
+
     render(<App />)
-    // June seed = 26 expenses + 2 paid subs surfaced as rows = 28 transaksi.
-    expect(await screen.findByText(/28 transaksi/)).toBeTruthy()
+    expect(await screen.findByText(/1 transaksi/)).toBeTruthy()
 
     fireEvent.click(screen.getByLabelText('Tambah pengeluaran hari ini'))
     fireEvent.click(screen.getByText('Input manual'))
     fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '50000' } })
     fireEvent.click(screen.getByText('Simpan'))
 
-    // After the write + reload, the history count reflects the new expense.
-    expect(await screen.findByText(/29 transaksi/)).toBeTruthy()
+    expect(await screen.findByText(/2 transaksi/)).toBeTruthy()
+    const body = api.addExpense.mock.calls[0][0]
+    expect(body).toMatchObject({ amount: 50000, category: 'Makan', subscription_id: null })
   })
 })

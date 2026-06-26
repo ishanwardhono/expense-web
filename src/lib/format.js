@@ -47,3 +47,14 @@ export function fmtDateShort(k) {
   const d = keyToDate(k)
   return d.getDate() + ' ' + MONTHS_ID[d.getMonth()].slice(0, 3)
 }
+
+/**
+ * 'HH:MM' wall-clock time from a backend `occurred_at` (RFC3339 with the
+ * Asia/Jakarta offset, e.g. '2026-06-01T12:10:00+07:00'). Returns '' for
+ * midnight (the backend's "no time given" sentinel) so rows stay clean.
+ */
+export function hhmm(occurredAt) {
+  if (!occurredAt || occurredAt.length < 16) return ''
+  const t = occurredAt.slice(11, 16)
+  return t === '00:00' ? '' : t
+}

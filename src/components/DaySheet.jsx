@@ -1,11 +1,11 @@
-// One day's expenses + mini-stats (terpakai / sisa belanja / sisa weekend or
-// flexible) + "Tambah Pengeluaran". Ported from amplop-components.jsx (DaySheetV2).
+// One day's expenses + mini-stats + "Tambah Pengeluaran". The list and the
+// mini-stats are assembled by the app from the dashboard.
 
 import { Sheet } from './Sheet.jsx'
 import { ExpRow } from './ExpRow.jsx'
 import { fmtDateLong } from '../lib/format.js'
 
-export function DaySheet({ k, list, subLine, minis, catColor, tagOf, tagStyle, onClose, onAdd, onEdit }) {
+export function DaySheet({ k, list, subLine, minis, catColor, tagStyle, onClose, onAdd, onEdit }) {
   return (
     <Sheet onClose={onClose}>
       <div className="sheet-title">{fmtDateLong(k)}</div>
@@ -23,7 +23,7 @@ export function DaySheet({ k, list, subLine, minis, catColor, tagOf, tagStyle, o
           <div className="empty-note">Belum ada pengeluaran di hari ini</div>
         ) : (
           list.map((e) => (
-            <ExpRow key={e.id} e={e} catColor={catColor} tag={tagOf ? tagOf(e) : null} tagStyle={tagStyle} onClick={() => onEdit(e)} />
+            <ExpRow key={e.id} e={e} catColor={catColor} tagStyle={tagStyle} onClick={() => onEdit(e)} />
           ))
         )}
       </div>
