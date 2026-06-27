@@ -11,6 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # Pin the Node that firebase-tools runs under. Node 24.17.0 introduced
+          # a keep-alive http.Agent regression (nodejs/node#63989) that makes
+          # node-fetch throw ERR_STREAM_PREMATURE_CLOSE against Google APIs,
+          # breaking `firebase deploy` (auth + release calls). 24.16.0 is the
+          # last good version.
+          node-version: '24.16.0'
       - run: npm ci && npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
