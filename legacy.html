@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShanCi Expense</title>
+    <link rel="icon" type="image/png" href="/icon.ico">
+    <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-button active" data-tab="weekly">
+                <span class="tab-icon">📅</span>
+                <span class="tab-text">Mingguan</span>
+            </button>
+            <button class="tab-button" data-tab="monthly">
+                <span class="tab-icon">🗓️</span>
+                <span class="tab-text">Bulanan</span>
+            </button>
+            <button class="tab-button recap-tab" data-tab="recap">
+                <span class="tab-icon">📊</span>
+            </button>
+        </div>
+
+        <!-- Weekly Expense Tab -->
+        <div id="weeklyTab" class="tab-content active">
+            <div class="header">
+                <h1 id="dateRange"></h1>
+                <p id="weekSubtitle" class="week-subtitle"></p>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Sisa Weekday</div>
+                        <div class="info-value" id="weekdayRemaining">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Sisa Sabtu</div>
+                        <div class="info-value" id="saturdayRemaining">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Sisa Mingguan</div>
+                        <div class="info-value" id="sundayRemaining">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <table class="expense-table">
+                <thead>
+                    <tr>
+                        <th>Hari</th>
+                        <th>Sisa Uang</th>
+                    </tr>
+                </thead>
+                <tbody id="expenseTableBody">
+                    <!-- Table rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+            
+            <div class="table-actions">
+                <button id="prevWeekBtn" class="secondary-button" style="display: none;">
+                    <span class="nav-icon">‹</span>
+                    Minggu Sebelumnya
+                </button>
+                <button id="addExpenseBtn" class="primary-button">
+                    <span class="button-icon">+</span>
+                    Tambah Pengeluaran
+                </button>
+                <button id="nextWeekBtn" class="secondary-button" style="display: none;">
+                    Minggu Selanjutnya
+                    <span class="nav-icon">›</span>
+                </button>
+            </div>
+
+            <!-- Expense Details Section -->
+            <div class="details-section">
+                <h2 class="details-title">Detail Pengeluaran Mingguan</h2>
+                <table class="details-table">
+                    <thead>
+                        <tr>
+                            <th>Waktu</th>
+                            <th>Tipe</th>
+                            <th>Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailsTableBody">
+                        <!-- Detail rows will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Monthly Expense Tab -->
+        <div id="monthlyTab" class="tab-content">
+            <div class="header">
+                <h1 id="monthDateRange"></h1>
+                <p id="monthSubtitle" class="month-subtitle"></p>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Total Mingguan</div>
+                        <div class="info-value" id="monthlyTotalWeeks">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Budget</div>
+                        <div class="info-value" id="monthlyBudget">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Sisa Bulanan</div>
+                        <div class="info-value" id="monthlyRemaining">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-actions">
+                <button id="prevMonthBtn" class="secondary-button">
+                    <span class="nav-icon">‹</span>
+                    Bulan Sebelumnya
+                </button>
+                <button id="addMonthlyExpenseBtn" class="primary-button">
+                    <span class="button-icon">+</span>
+                    Tambah Pengeluaran
+                </button>
+                <button id="nextMonthBtn" class="secondary-button">
+                    Bulan Selanjutnya
+                    <span class="nav-icon">›</span>
+                </button>
+            </div>
+
+            <!-- Monthly Expense Details Section -->
+            <div class="details-section">
+                <h2 class="details-title">Detail Pengeluaran Bulanan</h2>
+                <table class="details-table">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Tipe</th>
+                            <th>Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthlyDetailsTableBody">
+                        <!-- Detail rows will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recap Tab -->
+        <div id="recapTab" class="tab-content">
+            <div class="recap-container">
+                <div id="recapTablesContainer">
+                    <!-- Tables will be populated by JavaScript -->
+                </div>
+                <div id="recapNavigation" class="recap-navigation" style="display: none;">
+                    <button id="prevRecapBtn" class="secondary-button">
+                        <span class="nav-icon">+</span>
+                        Bulan Sebelumnya
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for adding expense -->
+    <div id="addExpenseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Tambah Pengeluaran</h3>
+                <button class="close-button" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Error section -->
+                <div id="modalErrorSection" class="modal-error-section" style="display: none;">
+                    <div class="error-content">
+                        <span class="error-icon">⚠️</span>
+                        <span id="modalErrorMessage" class="error-text"></span>
+                    </div>
+                </div>
+                
+                <form id="addExpenseForm">
+                    <div class="form-group">
+                        <label for="expenseAmount">Jumlah</label>
+                        <div class="amount-input-container">
+                            <input type="number" id="expenseAmount" name="amount" step="1" placeholder="Masukkan jumlah pengeluaran">
+                            <button type="button" id="negateBtn" class="negate-btn">+/-</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="expenseDate">Tanggal & Waktu</label>
+                        <div class="date-toggle-header">
+                            <div class="date-input-wrapper">
+                                <input type="datetime-local" id="expenseDate" name="date" disabled>
+                            </div>
+                            <div class="date-toggle-switch">
+                                <span class="toggle-label">Off</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="dateToggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span class="toggle-label">On</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="expenseType">Tipe</label>
+                        <select id="expenseType" name="type" class="expense-type-select">
+                            <!-- Options will be populated dynamically by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="expenseNote">Catatan (Opsional)</label>
+                        <textarea id="expenseNote" name="note" class="expense-note-textarea" placeholder="Masukkan catatan pengeluaran..." rows="2"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="cancelBtn" class="secondary-button">Batal</button>
+                        <button type="submit" id="submitBtn" class="primary-button">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for viewing expense details -->
+    <div id="expenseDetailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detail Pengeluaran</h3>
+                <button class="close-button" id="closeDetailModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-info">
+                    <div class="detail-row">
+                        <span class="detail-label">Waktu:</span>
+                        <span id="detailTime" class="detail-value"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Tipe:</span>
+                        <span id="detailType" class="detail-value"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Jumlah:</span>
+                        <span id="detailAmount" class="detail-value"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Catatan:</span>
+                        <span id="detailNote" class="detail-value"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>

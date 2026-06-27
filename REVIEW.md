@@ -1,45 +1,21 @@
-# Review — PR #14 `claude/expense-app-redesign-plan-phase-4-settings`
+# Review — PR #15 `feat/v2-amplop-phase3-cutover`
 
-Phase 4 of the v2 "Amplop" redesign: hidden URL-only settings page (budget
-config + subscription catalog CRUD) and subscription payment via the normal
-add-expense form (Langganan category + picker; pay = POST Langganan expense;
-delete = un-pay). HEAD `2a57b5d`. First (full) review.
-
-## Verification reproduced
-- `npm test` → 32 passing (4 files). Confirmed locally.
-- Backend contract / 1-based month / URL construction match tests + live notes.
-
-## Blocking
-- [x] Missing failure-path test for the new Langganan branch in
-  `src/components/ExpenseForm.jsx`. **Fixed:** `app.test.jsx` now has
-  "blocks a Langganan payment when no subscription is chosen" (asserts the
-  "Pilih langganan yang dibayar" error and that `addExpense` is NOT called).
-  Also added the budget reject-path test in `Settings.test.jsx`
-  ("rejects an invalid budget (negative)"). Suite: 34 passing.
+Phase 3 cutover: promote the React "Amplop" shell to the root `index.html`;
+preserve the old vanilla app verbatim at `legacy.html`; delete `v2.html`; update
+`vite.config.js` rollup inputs (main + legacy + settings, drop v2).
+Pass 2 = regression check of range `fc25b40..72381b3`.
 
 ## Resolved
-- ExpenseForm Langganan no-sub-picked failure path — covered (app.test.jsx).
-- BudgetSection negative/non-integer rejection — covered (Settings.test.jsx).
+- [x] `src/settings/Settings.jsx:56` — back link `href="/v2.html"` → `href="/"`.
+  Now resolves to the React root in dev/preview/Firebase. Verified fixed in
+  commit 72381b3; no new bug introduced by the change.
 
-## Non-blocking (nits)
-- nit: `src/settings/Settings.jsx:41-49` — on a write error, `run()` sets the
-  notice but does not reload; the editor keeps optimistic local state. Harmless
-  (next load reconciles), but a reload-on-error would be tidier.
-- nit: `src/app.jsx:113` — `openExpense(e, from, k)` still takes an unused `k`
-  param (pre-existing).
-- nit: `src/data/api.js` — `getBudget`/`getSubscriptions` build query strings via
-  string concat (consistent with existing `getMonth`); fine, but `URLSearchParams`
-  would be uniform. Not a correctness issue (year/month are numbers).
+## Verification reproduced (Pass 1)
+- `legacy.html` byte-identical to the previous `index.html`. OK.
+- New `index.html` mounts `/src/main.jsx`; correct title + favicon `/icon.ico`. OK.
+- `v2.html` removed; vite inputs map 1:1 to existing files; `v2` dropped. OK.
+- Firebase `**` → `/index.html` rewrite does not shadow `legacy.html`/`settings.html`. OK.
 
-## Notes / things checked and found correct
-- ExpenseForm disable logic (`:85`): paid subs disabled except the currently
-  linked one when editing; `(initial && initial.subscription_id)` is `null` when
-  adding, so paid subs stay disabled. Correct.
-- `subscription_id` is sent iff category===Langganan, else `null` (`:32`). Correct.
-- 1-based month sent from Settings (`getMonth()+1`) and asserted in tests. Correct.
-- Old Langganan read-only guard removed cleanly in `app.jsx`; Langganan rows now
-  editable/deletable; EnvelopeSheet Langganan detail stays read-only. Correct.
-- api error passthrough incl. 409 covered (`api.test.js:63-69`); Settings
-  invalid-sub covered (`Settings.test.jsx:59-68`).
-- CLAUDE.md: Indonesian copy, currency via fmtRp/fmtK, no secrets, focused diff,
-  `index.html` (v1) untouched, settings is a separate Vite rollup input. OK.
+## Non-blocking (nits) — addressed
+- `src/main.jsx:1` comment updated ("Mounted from the root index.html").
+- `README.md` v2.html references updated to reflect the cutover.

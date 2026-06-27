@@ -2,10 +2,11 @@
 
 A comprehensive expense tracking application with both weekly and monthly views.
 
-> **v2 "Amplop" (in progress).** The envelope-budgeting redesign is being built
-> alongside the current app (see `docs/v2-amplop-redesign-plan.md`). It mounts at
-> **`/v2.html`**, and its **hidden settings page** (budget config + subscriptions)
-> is **`/settings.html`** — there is intentionally no in-app link to it; reach it
+> **v2 "Amplop" (Phase 3 cutover).** The envelope-budgeting redesign is now the
+> app root (see `docs/v2-amplop-redesign-plan.md`). It mounts at **`/`**
+> (`index.html`); the previous vanilla app is preserved at **`/legacy.html`**.
+> Its **hidden settings page** (budget config + subscriptions) is
+> **`/settings.html`** — there is intentionally no in-app link to it; reach it
 > by typing the URL. The v2 app talks to the `expense-functions` backend via
 > `VITE_API_BASE_URL` (default `http://localhost:8080`).
 

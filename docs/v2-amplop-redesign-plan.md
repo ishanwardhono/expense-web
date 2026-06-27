@@ -344,7 +344,11 @@ endpoint) instead of the hard-coded `CFG`. Required for §5.2.
   responsibility and tested there.
 - [ ] **Production cutover** — deploy the backend (Cloud Function), set
   `VITE_API_BASE_URL` to it, replace `index.html`/tabs with the v2 app behind the
-  same Firebase host. Deferred (separate, riskier step; backend is local-only).
+  same Firebase host. **Frontend half done — PR #15:** the v2 "Amplop" React shell
+  is now the root `index.html` (the old vanilla app is preserved at
+  `legacy.html`), and `vite.config.js` builds `main`/`legacy`/`settings`. Still
+  pending: deploy the backend Cloud Function and set `VITE_API_BASE_URL` to it
+  (out of this repo; backend is local-only today).
 
 **Phase 4 — Settings: budget config + subscriptions management** ✅ *(done — PR #14)*
 
