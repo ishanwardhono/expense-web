@@ -53,7 +53,7 @@ export function Settings() {
   return (
     <div className="app settings" style={cssVars}>
       <div className="set-top">
-        <a className="set-back" href="/v2.html">‹ Kembali</a>
+        <a className="set-back" href="/">‹ Kembali</a>
         <div className="set-title">Pengaturan</div>
       </div>
 

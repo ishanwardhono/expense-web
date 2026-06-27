@@ -1,4 +1,4 @@
-// React entry for the v2 "Amplop" shell. Mounted from v2.html.
+// React entry for the v2 "Amplop" shell. Mounted from the root index.html.
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './app.jsx'
