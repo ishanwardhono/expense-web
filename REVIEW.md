@@ -2,22 +2,20 @@
 
 Phase 3 cutover: promote the React "Amplop" shell to the root `index.html`;
 preserve the old vanilla app verbatim at `legacy.html`; delete `v2.html`; update
-`vite.config.js` rollup inputs (main + legacy + settings, drop v2). HEAD = PR tip.
-First (full) review.
+`vite.config.js` rollup inputs (main + legacy + settings, drop v2).
+Pass 2 = regression check of range `fc25b40..72381b3`.
 
-## Verification reproduced
-- `legacy.html` is byte-identical to the previous `index.html` (`git diff` empty). OK.
-- New `index.html` mounts `/src/main.jsx` (present); title `ShanCi Expense` + favicon `/icon.ico` (`public/icon.ico` present). OK.
-- `v2.html` removed from the tree. OK.
-- vite inputs map 1:1 to existing files: `index.html`, `legacy.html`, `settings.html`; `v2` dropped. OK.
-- Firebase rewrite `**` → `/index.html`: `legacy.html` / `settings.html` are emitted as their own static files, so the catch-all does not shadow them (rewrite applies only to unmatched paths). OK.
-- `settings.html` → `/src/settings-main.jsx` (present). OK.
+## Resolved
+- [x] `src/settings/Settings.jsx:56` — back link `href="/v2.html"` → `href="/"`.
+  Now resolves to the React root in dev/preview/Firebase. Verified fixed in
+  commit 72381b3; no new bug introduced by the change.
 
-## Blocking
-- [x] `src/settings/Settings.jsx:56` — the "‹ Kembali" back link was
-  `href="/v2.html"`, the entry point this PR deletes. **Fixed:** now `href="/"`
-  (the new root).
+## Verification reproduced (Pass 1)
+- `legacy.html` byte-identical to the previous `index.html`. OK.
+- New `index.html` mounts `/src/main.jsx`; correct title + favicon `/icon.ico`. OK.
+- `v2.html` removed; vite inputs map 1:1 to existing files; `v2` dropped. OK.
+- Firebase `**` → `/index.html` rewrite does not shadow `legacy.html`/`settings.html`. OK.
 
-## Non-blocking (nits)
-- [x] nit: `src/main.jsx:1` — comment updated to "Mounted from the root index.html".
-- [x] nit: `README.md:7` — updated to describe the v2 shell at `/` with the vanilla app at `/legacy.html`.
+## Non-blocking (nits) — addressed
+- `src/main.jsx:1` comment updated ("Mounted from the root index.html").
+- `README.md` v2.html references updated to reflect the cutover.
