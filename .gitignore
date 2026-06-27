@@ -15,7 +15,9 @@ dist-ssr
 # Environment files (keep .env.example)
 .env
 .env.development
-# Note: .env.production is created dynamically in CI/CD
+# Note: .env.production IS committed — it holds only public Cloud Run URLs (no
+# secrets), so the CI build (npm run build) bakes the right backend into the
+# bundle. See CLAUDE.md: "API URLs are public Cloud Run endpoints."
 
 # Editor directories and files
 .vscode/*
