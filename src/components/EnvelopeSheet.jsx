@@ -43,18 +43,18 @@ export function EnvelopeSheet({ which, dash, onClose }) {
   if (which === 'belanja') {
     title = 'Belanja Mingguan'
     sub = 'Jatah cair tiap Jumat · berlaku Senin–Minggu pekan itu'
-    note = 'Mencakup Belanja & Cash (kapan saja), plus Makan & Jajan di hari kerja. Tiap pekan berdiri sendiri — pekan yang terpotong pergantian bulan ikut bulan dari hari Jumat-nya.'
+    note = 'Mencakup Belanja & Cash (kapan saja), plus Makan & Jajan di hari kerja. Tiap pekan berdiri sendiri — pekan yang terpotong pergantian bulan ikut bulan dari hari Jumat-nya. Sisa (atau minus) pekan yang sudah lewat masuk ke amplop Fleksibel.'
     body = <div className="env-list">{dash.belanja_weeks.map((w) => <WeekRow key={w.friday} row={w} />)}</div>
   } else if (which === 'weekend') {
     title = 'Akhir Pekan'
     sub = 'Amplop untuk Sabtu + Minggu (berdua)'
-    note = 'Mencakup Makan, Jajan & Lainnya di hari Sabtu–Minggu (Belanja & Cash tetap masuk Belanja Mingguan). Tiap akhir pekan berdiri sendiri — ikut bulan dari hari Sabtu-nya.'
+    note = 'Mencakup Makan & Jajan di hari Sabtu–Minggu (Belanja & Cash tetap masuk Belanja Mingguan). Tiap akhir pekan berdiri sendiri — ikut bulan dari hari Sabtu-nya. Sisa (atau minus) akhir pekan yang sudah lewat masuk ke amplop Fleksibel.'
     body = <div className="env-list">{dash.weekends.map((w) => <WeekRow key={w.saturday} row={w} />)}</div>
   } else if (which === 'langganan') {
     const subs = dash.subscriptions || []
     title = 'Langganan'
     sub = fmtK(envById.langganan.budget) + ' dialokasikan bulan ini'
-    note = 'Bayar langganan dengan menambah pengeluaran kategori Langganan. Kelola daftar langganan menyusul.'
+    note = 'Bayar langganan dengan menambah pengeluaran kategori Langganan. Selisih antara alokasi dan pembayaran masuk ke amplop Fleksibel.'
     body = (
       <div className="sheet-list">
         {subs.length === 0 ? <div className="empty-note">Belum ada langganan</div> : subs.map((s) => {
