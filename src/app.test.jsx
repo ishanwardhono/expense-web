@@ -117,7 +117,7 @@ describe('App — renders the server dashboard', () => {
     const dash = makeDash([ROW])
     dash.flex = {
       budget: 1800000, rollover: 582000, spent: 0, left: 2382000,
-      rollover_items: [{ type: 'week', start: '2026-06-01', end: '2026-06-07', amount: 582000 }],
+      rollover_items: [{ type: 'week', amount: 582000 }],
     }
     api.getMonth.mockResolvedValue(dash)
 
@@ -127,9 +127,9 @@ describe('App — renders the server dashboard', () => {
     fireEvent.click(screen.getByText('Fleksibel'))                  // open the sheet
 
     expect(screen.getByText('Rollover')).toBeTruthy()
-    // The total row and the single item row both show +582K.
+    // The total row and the single group row both show +582K.
     expect(screen.getAllByText('+582K')).toHaveLength(2)
-    expect(screen.getByText('Pekan 1–7 Jun')).toBeTruthy()
+    expect(screen.getByText('Mingguan')).toBeTruthy()
   })
 
   it('blocks a Langganan payment when no subscription is chosen', async () => {

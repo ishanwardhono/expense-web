@@ -23,29 +23,29 @@ function makeDash(flex) {
 afterEach(cleanup)
 
 describe('EnvelopeSheet — fleksibel rollover', () => {
-  it('shows the rollover total and one labeled row per closed source', () => {
+  it('shows the rollover total and one summed row per type group', () => {
     render(<EnvelopeSheet which="fleksibel" onClose={() => {}} dash={makeDash({
       budget: 1613000, rollover: 115000, spent: 8000, left: 1720000,
       rollover_items: [
-        { type: 'week', start: '2026-06-01', end: '2026-06-07', amount: 168000 },
-        { type: 'weekend', start: '2026-06-06', end: '2026-06-07', amount: -54000 },
-        { type: 'subscription', name: 'Netflix', amount: 1000 },
+        { type: 'week', amount: 168000 },
+        { type: 'weekend', amount: -54000 },
+        { type: 'subscription', amount: 1000 },
       ],
     })} />)
     expect(screen.getByText('Rollover')).toBeTruthy()
     expect(screen.getByText('+115K')).toBeTruthy()
-    expect(screen.getByText('Pekan 1–7 Jun')).toBeTruthy()
+    expect(screen.getByText('Mingguan')).toBeTruthy()
     expect(screen.getByText('+168K')).toBeTruthy()
-    expect(screen.getByText('Akhir pekan 6–7 Jun')).toBeTruthy()
+    expect(screen.getByText('Akhir pekan')).toBeTruthy()
     expect(screen.getByText('−54K')).toBeTruthy()
-    expect(screen.getByText('Netflix')).toBeTruthy()
+    expect(screen.getByText('Langganan')).toBeTruthy()
     expect(screen.getByText('+1K')).toBeTruthy()
   })
 
-  it('renders "pas" for a zero-amount closed source and an unsigned zero total', () => {
+  it('renders "pas" for a zero-sum type group and an unsigned zero total', () => {
     render(<EnvelopeSheet which="fleksibel" onClose={() => {}} dash={makeDash({
       budget: 1613000, rollover: 0, spent: 8000, left: 1605000,
-      rollover_items: [{ type: 'week', start: '2026-06-01', end: '2026-06-07', amount: 0 }],
+      rollover_items: [{ type: 'week', amount: 0 }],
     })} />)
     expect(screen.getByText('Rollover')).toBeTruthy()
     expect(screen.getByText('pas')).toBeTruthy()

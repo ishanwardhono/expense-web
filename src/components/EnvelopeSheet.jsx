@@ -3,7 +3,7 @@
 // the Langganan list is read-only this phase (subscription management → Phase 4).
 
 import { Sheet } from './Sheet.jsx'
-import { fmtK, fmtRp, fmtDateShort, fmtRange } from '../lib/format.js'
+import { fmtK, fmtRp, fmtDateShort } from '../lib/format.js'
 
 function WeekRow({ row }) {
   const { range, state, spent, budget, left } = row
@@ -89,9 +89,9 @@ export function EnvelopeSheet({ which, dash, onClose }) {
     // no rollover fields — render the plain ledger then.
     const rollover = flex.rollover || 0
     const items = flex.rollover_items || []
-    const itemLabel = (it) => it.type === 'subscription'
-      ? it.name
-      : (it.type === 'week' ? 'Pekan ' : 'Akhir pekan ') + fmtRange(it.start, it.end)
+    // rollover_items is grouped by type: one summed row per type (§7.1).
+    const itemLabel = (it) =>
+      it.type === 'week' ? 'Mingguan' : it.type === 'weekend' ? 'Akhir pekan' : 'Langganan'
     const signedK = (n) => (n > 0 ? '+' : '') + fmtK(n)
     const flexRows = [
       { l: 'Budget bulanan', v: fmtK(dash.stats.budget) },

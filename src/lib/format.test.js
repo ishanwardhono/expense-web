@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { fmtRp, fmtK, fmtRange } from './format.js'
+import { fmtRp, fmtK } from './format.js'
 
 describe('fmtRp', () => {
   it('formats millions with dot thousands separators (id-ID)', () => {
@@ -33,16 +33,6 @@ describe('fmtRp', () => {
     expect(fmtRp(NaN)).toBe('Rp0')
     expect(fmtRp(Infinity)).toBe('Rp0')
     expect(fmtRp(undefined)).toBe('Rp0')
-  })
-})
-
-describe('fmtRange', () => {
-  it('same month: "1–7 Jun"', () => {
-    expect(fmtRange('2026-06-01', '2026-06-07')).toBe('1–7 Jun')
-  })
-
-  it('crossing months: "29 Jun–5 Jul"', () => {
-    expect(fmtRange('2026-06-29', '2026-07-05')).toBe('29 Jun–5 Jul')
   })
 })
 
