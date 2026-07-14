@@ -49,6 +49,17 @@ export function fmtDateShort(k) {
 }
 
 /**
+ * Date-range label for a week/weekend: "1–7 Jun" when both keys share a
+ * month, "29 Jun–5 Jul" when the range crosses one. Mirrors the backend's
+ * `range` strings (en dash, no year).
+ */
+export function fmtRange(startK, endK) {
+  const s = keyToDate(startK)
+  const sameMonth = s.getMonth() === keyToDate(endK).getMonth()
+  return (sameMonth ? s.getDate() : fmtDateShort(startK)) + '–' + fmtDateShort(endK)
+}
+
+/**
  * 'HH:MM' wall-clock time from a backend `occurred_at` (RFC3339 with the
  * Asia/Jakarta offset, e.g. '2026-06-01T12:10:00+07:00'). Returns '' for
  * midnight (the backend's "no time given" sentinel) so rows stay clean.
