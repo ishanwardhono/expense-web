@@ -28,7 +28,7 @@ function makeDash(dayRows, subscriptions = []) {
     ],
     belanja_weeks: [{ range: '22–28 Jun', monday: '2026-06-22', friday: '2026-06-26', sunday: '2026-06-28', budget: 600000, spent: 18000, left: 582000, state: 'current' }],
     weekends: [{ range: '27–28 Jun', saturday: '2026-06-27', sunday: '2026-06-28', budget: 200000, spent: 0, left: 200000, state: 'future' }],
-    flex: { budget: 1800000, spent: 0, left: 1800000 },
+    flex: { budget: 1800000, rollover: 0, spent: 0, left: 1800000, rollover_items: [] },
     calendar: [{ date: '2026-06-23', dow: 2, is_weekend: false, is_today: false, spent: 18000 }],
     days,
     subscriptions,
@@ -111,6 +111,25 @@ describe('App — renders the server dashboard', () => {
 
     await waitFor(() => expect(api.addExpense).toHaveBeenCalled())
     expect(api.addExpense.mock.calls[0][0]).toMatchObject({ amount: 186000, category: 'Langganan', subscription_id: 's1' })
+  })
+
+  it('opens the Fleksibel sheet from the envelope card and shows the rollover', async () => {
+    const dash = makeDash([ROW])
+    dash.flex = {
+      budget: 1800000, rollover: 582000, spent: 0, left: 2382000,
+      rollover_items: [{ type: 'week', amount: 582000 }],
+    }
+    api.getMonth.mockResolvedValue(dash)
+
+    render(<App />)
+    await screen.findByText('Terpakai')
+    fireEvent.click(screen.getByText('Terpakai').closest('button')) // expand envelope card
+    fireEvent.click(screen.getByText('Fleksibel'))                  // open the sheet
+
+    expect(screen.getByText('Rollover')).toBeTruthy()
+    // The total row and the single group row both show +582K.
+    expect(screen.getAllByText('+582K')).toHaveLength(2)
+    expect(screen.getByText('Mingguan')).toBeTruthy()
   })
 
   it('blocks a Langganan payment when no subscription is chosen', async () => {

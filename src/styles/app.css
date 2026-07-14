@@ -645,6 +645,9 @@ button { font-family: inherit; }
 .fx-row.strong .fx-l, .fx-row.strong .fx-v { color: var(--ink); font-weight: 800; }
 .fx-row.g .fx-v { color: var(--green); }
 .fx-row.r .fx-v { color: var(--red); }
+.fx-row.sub { border-top: none; padding-top: 0; }
+.fx-row.sub .fx-l { padding-left: 14px; font-weight: 500; font-size: 12.5px; }
+.fx-row.sub .fx-v { font-weight: 600; font-size: 12.5px; }
 .btn.full.ghost { margin-top: 14px; }
 
 /* ============================================================
