@@ -3,7 +3,7 @@
 // the Langganan list is read-only this phase (subscription management → Phase 4).
 
 import { Sheet } from './Sheet.jsx'
-import { fmtK, fmtRp, fmtDateShort } from '../lib/format.js'
+import { fmtK, fmtRp, fmtDateShort, fmtRange } from '../lib/format.js'
 
 function WeekRow({ row }) {
   const { range, state, spent, budget, left } = row
@@ -83,20 +83,38 @@ export function EnvelopeSheet({ which, dash, onClose }) {
   } else {
     title = 'Fleksibel'
     sub = 'Jatah yang tersisa setelah semua alokasi'
-    note = 'Hanya pengeluaran Lainnya di hari kerja yang dihitung dari amplop ini. Nilainya bisa minus kalau pemakaian melebihi jatah.'
+    note = 'Mencakup pengeluaran Lainnya (hari apa pun). Sisa atau minus dari pekan, akhir pekan, dan langganan yang sudah selesai ikut masuk ke amplop ini. Nilainya bisa minus kalau pemakaian melebihi jatah.'
+    const flex = dash.flex
+    // Legacy guard: cached dashboards (and a backend without Phase 6 yet) have
+    // no rollover fields — render the plain ledger then.
+    const rollover = flex.rollover || 0
+    const items = flex.rollover_items || []
+    const itemLabel = (it) => it.type === 'subscription'
+      ? it.name
+      : (it.type === 'week' ? 'Pekan ' : 'Akhir pekan ') + fmtRange(it.start, it.end)
+    const signedK = (n) => (n > 0 ? '+' : '') + fmtK(n)
     const flexRows = [
       { l: 'Budget bulanan', v: fmtK(dash.stats.budget) },
       { l: '− Belanja mingguan', v: '−' + fmtK(envById.belanja.budget) },
       { l: '− Akhir pekan', v: '−' + fmtK(envById.weekend.budget) },
       { l: '− Langganan', v: '−' + fmtK(envById.langganan.budget) },
-      { l: 'Jatah fleksibel', v: fmtK(dash.flex.budget), strong: true },
-      { l: 'Terpakai', v: fmtK(dash.flex.spent) },
-      { l: 'Sisa', v: fmtK(dash.flex.left), strong: true, cls: dash.flex.left >= 0 ? 'g' : 'r' },
+      { l: 'Jatah fleksibel', v: fmtK(flex.budget), strong: true },
     ]
+    if (items.length > 0) {
+      flexRows.push({ l: 'Rollover', v: signedK(rollover), strong: true, cls: rollover >= 0 ? 'g' : 'r' })
+      items.forEach((it) => flexRows.push({
+        l: itemLabel(it),
+        v: it.amount === 0 ? 'pas' : signedK(it.amount),
+        sub: true,
+        cls: it.amount > 0 ? 'g' : it.amount < 0 ? 'r' : undefined,
+      }))
+    }
+    flexRows.push({ l: 'Terpakai', v: fmtK(flex.spent) })
+    flexRows.push({ l: 'Sisa', v: fmtK(flex.left), strong: true, cls: flex.left >= 0 ? 'g' : 'r' })
     body = (
       <div className="env-list">
         {flexRows.map((r, i) => (
-          <div className={'fx-row' + (r.strong ? ' strong' : '') + (r.cls ? ' ' + r.cls : '')} key={i}>
+          <div className={'fx-row' + (r.strong ? ' strong' : '') + (r.sub ? ' sub' : '') + (r.cls ? ' ' + r.cls : '')} key={i}>
             <span className="fx-l">{r.l}</span>
             <span className="fx-v">{r.v}</span>
           </div>
